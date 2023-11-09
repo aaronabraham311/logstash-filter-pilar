@@ -1,1 +1,3 @@
-require "logstash/devutils/rake"
+# frozen_string_literal: true
+
+require 'logstash/devutils/rake'

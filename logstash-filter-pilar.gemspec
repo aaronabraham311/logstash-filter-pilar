@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Gem::Specification.new do |s|
   s.name          = 'logstash-filter-pilar'
   s.version       = '0.1.0'
@@ -8,16 +10,18 @@ Gem::Specification.new do |s|
   s.authors       = ['aaronabraham311']
   s.email         = 'aaronabraham311@gmail.com'
   s.require_paths = ['lib']
+  s.required_ruby_version = '>= 2.6.0'
 
   # Files
-  s.files = Dir['lib/**/*','spec/**/*','vendor/**/*','*.gemspec','*.md','CONTRIBUTORS','Gemfile','LICENSE','NOTICE.TXT']
-   # Tests
+  s.files = Dir['lib/**/*', 'spec/**/*', 'vendor/**/*', '*.gemspec', '*.md', 'CONTRIBUTORS', 'Gemfile', 'LICENSE',
+                'NOTICE.TXT']
+  # Tests
   s.test_files = s.files.grep(%r{^(test|spec|features)/})
 
   # Special flag to let us know this is actually a logstash plugin
-  s.metadata = { "logstash_plugin" => "true", "logstash_group" => "filter" }
+  s.metadata = { 'logstash_plugin' => 'true', 'logstash_group' => 'filter' }
 
   # Gem dependencies
-  s.add_runtime_dependency "logstash-core-plugin-api", "~> 2.0"
+  s.add_runtime_dependency 'logstash-core-plugin-api', '~> 2.0'
   s.add_development_dependency 'logstash-devutils'
 end
