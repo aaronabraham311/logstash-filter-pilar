@@ -8,3 +8,4 @@ if Dir.exist?(logstash_path)
   gem 'logstash-core-plugin-api', :path => "#{logstash_path}/logstash-core-plugin-api"
 end
 
+gem 'rubocop', require: false

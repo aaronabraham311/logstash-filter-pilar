@@ -21,6 +21,7 @@ Need help? Try #logstash on freenode IRC or the https://discuss.elastic.co/c/log
 
 #### Code
 - To get started, you'll need JRuby with the Bundler gem installed.
+    - 
 
 - Create a new plugin or clone and existing from the GitHub [logstash-plugins](https://github.com/logstash-plugins) organization. We also provide [example plugins](https://github.com/logstash-plugins?query=example).
 
@@ -28,6 +29,8 @@ Need help? Try #logstash on freenode IRC or the https://discuss.elastic.co/c/log
 ```sh
 bundle install
 ```
+
+- Thi
 
 #### Test
 
