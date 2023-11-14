@@ -30,7 +30,7 @@ Need help? Try #logstash on freenode IRC or the https://discuss.elastic.co/c/log
 bundle install
 ```
 
-- Thi
+- Run `rubocop -A` to run and fix Ruby style guide issues
 
 #### Test
 
