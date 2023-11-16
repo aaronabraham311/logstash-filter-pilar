@@ -1,0 +1,8 @@
+Metrics/MethodLength:
+  Enabled: False
+
+Gemspec/DevelopmentDependencies:
+  Enabled: False
+
+AllCops:
+  NewCops: enable

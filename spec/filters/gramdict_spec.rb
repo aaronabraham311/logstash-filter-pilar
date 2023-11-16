@@ -25,7 +25,7 @@ describe GramDict do
     it 'generates a regular expression based on the log format' do
       format_regex = subject.send(:regex_generator, logformat)
       expect(format_regex).to be_a(Regexp)
-      expect(format_regex).to match('<date> <time> <message>')  # Adjust this line to match your specific log format and expectations
+      expect(format_regex).to match('<date> <time> <message>')
     end
   end
 end

@@ -39,7 +39,7 @@ class GramDict
   # It is designed to parse log files where the format of the logs is known and can be described using placeholders.
   #
   # Parameters:
-  # logformat: A string representing the log format. Placeholders for the data fields are enclosed in angle brackets (< >).
+  # logformat: A string representing the log format.
   #
   # Returns:
   # A Regexp object that can be used to match and extract data from log lines that follow the specified format.
@@ -48,7 +48,6 @@ class GramDict
     # Placeholders are identified as text within angle brackets (< >).
     splitters = logformat.split(/(<[^<>]+>)/)
 
-    # Initialize an empty string to build the regex pattern.
     format = ''
 
     # Iterate through the array of strings and placeholders.
@@ -67,7 +66,6 @@ class GramDict
     end
 
     # Compile the complete regex pattern, anchored at the start and end,
-    # to ensure it matches an entire line of the log file.
     Regexp.new("^#{format}$")
   end
 end
