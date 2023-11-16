@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.summary       = 'Logstash Filter Plugin for Pilar'
   s.description   = 'A plugin for parsing log events using PILAR'
   s.homepage      = ''
-  s.authors       = ['aaronabraham311']
+  s.authors       = %w[aaronabraham311 ZhangCreations]
   s.email         = 'aaronabraham311@gmail.com'
   s.require_paths = ['lib']
   s.required_ruby_version = '>= 2.6.0'
