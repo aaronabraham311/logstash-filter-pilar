@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.authors       = ['aaronabraham311']
   s.email         = 'aaronabraham311@gmail.com'
   s.require_paths = ['lib']
-  s.required_ruby_version = '>= 2.6.0'
+  s.required_ruby_version = '>= 2.7.0'
 
   # Files
   s.files = Dir['lib/**/*', 'spec/**/*', 'vendor/**/*', '*.gemspec', '*.md', 'CONTRIBUTORS', 'Gemfile', 'LICENSE',

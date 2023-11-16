@@ -10,8 +10,8 @@ if Dir.exist?(logstash_path)
   gem 'logstash-core-plugin-api', path: "#{logstash_path}/logstash-core-plugin-api"
 end
 
-
 group :development do
+  gem 'execjs', require: false
   gem 'pre-commit', require: false
   gem 'rubocop', require: false
 end
