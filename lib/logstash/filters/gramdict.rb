@@ -68,4 +68,75 @@ class GramDict
     # Compile the complete regex pattern, anchored at the start and end,
     Regexp.new("^#{format}$")
   end
+
+  # Method: single_gram_upload
+  # This method updates the frequency count of a single gram (word or token) in a hash map.
+  # It increases the count of the gram if it already exists in the hash map,
+  # or initializes it to 1 if it's the first occurrence.
+  #
+  # Parameters:
+  # gram: A string representing the single gram whose count needs to be updated.
+  #
+  # Returns:
+  # Nothing. It updates the @single_gram_dict in place.
+  def single_gram_upload(gram)
+    if @single_gram_dict.key?(gram)
+      @single_gram_dict[gram] += 1
+    else
+      @single_gram_dict[gram] = 1
+    end
+  end
+
+  # Method: double_gram_upload
+  # This method is used to update the frequency count of a double gram (pair of words or tokens) in a hash map.
+  # It increments the count of the double gram if it exists,
+  # or initializes it to 1 if it's not already present.
+  #
+  # Parameters:
+  # gram: A string representing the double gram to be updated in the hash map.
+  #
+  # Returns:
+  # Nothing. It updates the @double_gram_dict in place.
+  def double_gram_upload(gram)
+    if @double_gram_dict.key?(gram)
+      @double_gram_dict[gram] += 1
+    else
+      @double_gram_dict[gram] = 1
+    end
+  end
+
+  # Method: tri_gram_upload
+  # This method updates the count of a tri gram (sequence of three words or tokens) in a hash map.
+  # It increases the count if the tri gram is already present,
+  # or sets it to 1 for a new tri gram.
+  #
+  # Parameters:
+  # gram: A string representing the tri gram for frequency updating.
+  #
+  # Returns:
+  # Nothing. It modifies the @tri_gram_dict internally.
+  def tri_gram_upload(gram)
+    if @tri_gram_dict.key?(gram)
+      @tri_gram_dict[gram] += 1
+    else
+      @tri_gram_dict[gram] = 1
+    end
+  end
+
+  # Method: four_gram_upload
+  # This method manages the frequency count of four grams (sequences of four words or tokens) in a hash map.
+  # It either increments the existing count or initializes it to 1 if the four gram is new.
+  #
+  # Parameters:
+  # gram: A string that denotes the four gram to be updated in the hash map.
+  #
+  # Returns:
+  # Nothing. The @four_gram_dict is updated accordingly.
+  def four_gram_upload(gram)
+    if @four_gram_dict.key?(gram)
+      @four_gram_dict[gram] += 1
+    else
+      @four_gram_dict[gram] = 1
+    end
+  end
 end
