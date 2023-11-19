@@ -11,6 +11,7 @@ if Dir.exist?(logstash_path)
 end
 
 group :development do
+  gem 'execjs', require: false
   gem 'pre-commit', require: false
   gem 'rubocop', require: false
 end
