@@ -7,5 +7,8 @@ Metrics/BlockLength:
 Gemspec/DevelopmentDependencies:
   Enabled: False
 
+Gemspec/DeprecatedAttributeAssignment:
+  Enabled: False
+
 AllCops:
   NewCops: enable
