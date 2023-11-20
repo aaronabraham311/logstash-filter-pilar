@@ -3,7 +3,7 @@
 source 'https://rubygems.org'
 gemspec
 
-logstash_path = ENV['LOGSTASH_PATH']
+logstash_path = ENV.fetch('LOGSTASH_PATH', nil)
 
 if Dir.exist?(logstash_path)
   gem 'logstash-core', path: "#{logstash_path}/logstash-core"
