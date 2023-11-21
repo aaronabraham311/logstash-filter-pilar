@@ -29,7 +29,7 @@
 #
 # This class is essential for log management systems where data privacy and security are paramount.
 class Preprocessor
-  def initialize(gram_dict, regexes, logformat)
+  def initialize(gram_dict, regexes, logformat, content_specifier)
     # gram_dict for uploading log event tokens
     @gram_dict = gram_dict
 
@@ -45,6 +45,9 @@ class Preprocessor
 
     # Regex for specific log event format
     @format = regex_generator(logformat)
+
+    # This is the content specifier in the @format regex
+    @content_specifier = content_specifier
   end
 
   # Method: regex_generator
@@ -111,5 +114,28 @@ class Preprocessor
 
     # Return the processed log line
     log_event
+  end
+
+  # Splits a log line into tokens based on a given format and regular expression.
+  #
+  # @param log_line [String] the log line to be processed
+  # @return [Array, nil] an array of tokens if matches are found, otherwise nil
+  def token_spliter(log_line)
+    # Finds matches in the stripped line for the regex format
+    stripped_log_line = log_line.strip
+    match = stripped_log_line.match(@format)
+
+    # If not match found, return nil
+    if match.nil?
+      nil
+    else
+      # Gets content
+      content = match[@content_specifier]
+      puts content
+
+      # Mask content and return
+      processed_line = mask_log_event(content)
+      processed_line.strip.split
+    end
   end
 end
