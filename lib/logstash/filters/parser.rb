@@ -14,7 +14,58 @@ class Parser
     @entropy_dict = {}
   end
 
-  def is_dynamic(tokens, dynamic_index, index); end
+  # Helper method to update entropy dictionary
+  def update_entropy_dict(f_score)
+    f_str = f_score.to_s
+    if @entropydict.include?(f_str)
+      @entropydict[f_str] += 1
+    else
+      @entropydict[f_str] = 1
+    end
+  end
+
+  def is_dynamic(tokens, dynamic_index, index)
+    f = 0
+
+    if index.zero?
+      f = 1
+    elsif index == 1
+      singlegram = tokens[index - 1]
+      doublegram = "#{tokens[index - 1]}^#{tokens[index]}"
+
+      f = if @double_dict.include?(doublegram) && @single_dict.include?(singlegram)
+            @double_dict[doublegram].to_f / @single_dict[singlegram]
+          else
+            0
+          end
+
+      update_entropy_dict(f)
+    else
+      if dynamic_index.include?(index - 2)
+        singlegram = tokens[index - 1]
+        doublegram = "#{tokens[index - 1]}^#{tokens[index]}"
+
+        f = if @double_dict.include?(doublegram) && @single_dict.include?(singlegram)
+              @double_dict[doublegram].to_f / @single_dict[singlegram]
+            else
+              0
+            end
+      else
+        doublegram = "#{tokens[index - 2]}^#{tokens[index - 1]}"
+        trigram = "#{doublegram}^#{tokens[index]}"
+
+        f = if @tridict.include?(trigram) && @doubledict.include?(doublegram)
+              @tridict[trigram].to_f / @doubledict[doublegram]
+            else
+              0
+            end
+
+      end
+      update_entropy_dict(f)
+    end
+
+    f <= @threshold
+  end
 
   def gram_checker(tokens)
     dynamic_index = []
