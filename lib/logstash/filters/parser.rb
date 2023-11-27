@@ -3,7 +3,21 @@
 require 'digest'
 require 'logstash/filters/gramdict'
 
-# Define a Parser class for processing tokens and generating templates.
+# The Parser class is responsible for analyzing log tokens and generating templates and events.
+# It identifies dynamic tokens within logs and creates standardized templates 
+# by replacing these dynamic tokens. The class is initialized with three parameters:
+# - tokens_list: An array of tokenized log entries.
+# - gramdict: An instance of the GramDict class used for n-gram frequency analysis.
+# - threshold: A numeric value used to determine if a token is dynamic based on its frequency. If it's frequency is less than this threshold, it's dynamic.
+#
+# Methods:
+# - is_dynamic: Determines if a token is dynamic by comparing its frequency to the set threshold.
+# - calculate_frequency: Calculates frequency of a token considering its index position.
+# - calculate_bigram_frequency: Determines frequency based on adjacent tokens (bigrams).
+# - calculate_trigram_frequency: Calculates frequency based on trigram context.
+# - gram_checker: Identifies all dynamic tokens in a log entry.
+# - template_generator: Generates a log template by replacing dynamic tokens.
+# - parse: Processes each token list to generate event strings and templates.
 class Parser
   def initialize(tokens_list, gramdict, threshold)
     @tokens_list = tokens_list
@@ -11,27 +25,59 @@ class Parser
     @threshold = threshold
   end
 
+  # Method: is_dynamic
+  # This method evaluates if a given token in a log is dynamic by assessing its frequency relative to a set threshold.
+  # A token is deemed dynamic if its frequency is equal to or lower than the threshold value.
+  #
+  # Parameters:
+  # - tokens: An array of tokens from a log entry.
+  # - dynamic_indices: An array containing indices of previously identified dynamic tokens.
+  # - index: The index of the current token being evaluated.
+  #
+  # Returns:
+  # A boolean indicating whether the token is dynamic (true) or static (false).
   def is_dynamic(tokens, dynamic_indices, index)
-    frequency = if index.zero?
-                  1
-                else
-                  calculate_frequency(tokens, dynamic_indices, index)
-                end
+    frequency = calculate_frequency(tokens, dynamic_indices, index)
     frequency <= @threshold
   end
 
+  # Method: calculate_frequency
+  # This method determines the frequency of a token within a log entry, considering the context provided by adjacent tokens.
+  # It switches between bigram and trigram frequency calculations based on the token's position and the dynamic status of preceding tokens.
+  #
+  # The method returns 1 for the first token (index 0), giving it maximum frequency as its assuming no previous context. For the second token (index 1), 
+  # it calculates the bigram frequency. For a token where the token two indices before is dynamic, a bigram is also used as trigram frequency calculation does not make sense on a dynamic token. 
+  # In all other cases, it calculates the trigram frequency.
+  #
+  # Parameters:
+  # - tokens: An array of tokens from the log entry.
+  # - dynamic_indices: An array of indices for previously identified dynamic tokens.
+  # - index: The index of the current token for which the frequency is calculated.
+  #
+  # Returns:
+  # The calculated frequency of the token as a float, based on bigram or trigram analysis.
   def calculate_frequency(tokens, dynamic_indices, index)
-    if index == 1
+    if index == 0 
+      1
+    elsif index == 1 || dynamic_indices.include?(index - 2)
       calculate_bigram_frequency(tokens, index)
-    elsif dynamic_indices.include?(index - 2)
-      calculate_bigram_frequency(tokens,
-                                 index)
     else
-      calculate_trigram_frequency(tokens,
-                                  index)
+      calculate_trigram_frequency(tokens, index)
     end
   end
 
+  # Method: calculate_bigram_frequency
+  # This method calculates the frequency of a token within the context of a bigram (pair of adjacent tokens).
+  # It forms a bigram with the token and its preceding token, then checks their frequency in the GramDict instance.
+  # The frequency is determined as the ratio of the bigram frequency to the frequency of the preceding single token.
+  #
+  # Parameters:
+  # tokens: An array of tokens representing the log entry.
+  # index: The current index of the token for which the bigram frequency is being calculated.
+  #
+  # Returns:
+  # The frequency of the bigram as a float. If the bigram or singlegram is not found in the dictionaries,
+  # it returns 0, indicating a lack of previous occurrences.
   def calculate_bigram_frequency(tokens, index)
     singlegram = tokens[index - 1]
     doublegram = "#{singlegram}^#{tokens[index]}"
@@ -43,6 +89,18 @@ class Parser
     end
   end
 
+  # Method: calculate_trigram_frequency
+  # This method calculates the frequency of a token within the context of a trigram (sequence of three adjacent tokens).
+  # It forms a trigram with the token and its two preceding tokens and also considers the intermediate bigram.
+  # The frequency is determined as the ratio of the trigram frequency to the frequency of the preceding bigram.
+  #
+  # Parameters:
+  # tokens: An array of tokens representing the log entry.
+  # index: The current index of the token for which the trigram frequency is being calculated.
+  #
+  # Returns:
+  # The frequency of the trigram as a float. If the trigram or the intermediate bigram is not found in the dictionaries,
+  # it returns 0, suggesting a unique or rare occurrence in the logs.
   def calculate_trigram_frequency(tokens, index)
     doublegram = "#{tokens[index - 2]}^#{tokens[index - 1]}"
     trigram = "#{doublegram}^#{tokens[index]}"
@@ -54,6 +112,16 @@ class Parser
     end
   end
 
+  # Method: gram_checker
+  # This method identifies dynamic tokens in a given log entry. It iterates through the tokens
+  # and uses the is_dynamic method to check if each token is dynamic. Dynamic tokens are those
+  # whose frequency is less than or equal to a certain threshold, suggesting variability in log entries.
+  #
+  # Parameters:
+  # tokens: An array of tokens representing the log entry.
+  #
+  # Returns:
+  # An array of indices corresponding to dynamic tokens within the log entry. 
   def gram_checker(tokens)
     dynamic_indices = []
     if tokens.length >= 2
@@ -66,10 +134,20 @@ class Parser
     dynamic_indices
   end
 
+  # Method: template_generator
+  # Generates a standardized log template from a list of tokens. This method replaces dynamic tokens
+  # (identified by their indices in dynamic_indices) with a placeholder symbol '<*>'. The result is a template
+  # that represents the static structure of the log entry, with dynamic parts generalized.
+  #
+  # Parameters:
+  # tokens: An array of tokens from the log entry.
+  # dynamic_indices: An array of indices indicating which tokens are dynamic.
+  #
+  # Returns:
+  # A string representing the log template, with dynamic tokens replaced by '<*>'.
   def template_generator(tokens, dynamic_indices)
     template = String.new('')
     tokens.each_with_index do |token, index|
-      # this looks wack but rubocop made me do it
       template << if dynamic_indices.include?(index)
                     '<*> '
                   else
@@ -79,8 +157,14 @@ class Parser
     template
   end
 
-  # TODO: WE ARE NOW OUTPUTTING SOMETHING DIFFERENT AND THE INPUTS OF THE FUNCTION ARE DIFFERENT
-  # THIS NOW MAPS BETTER TO STREAMING FOR NOW
+  # Method: parse
+  # This method processes each tokenized log entry in the tokens_list. It identifies dynamic tokens,
+  # generates a log template, and then compiles two strings: event_string and template_string.
+  # The event_string maps each event to its template, while template_string counts the occurrences
+  # of each template. It also ensures that templates are properly formatted by removing certain characters.
+  #
+  # Returns:
+  # An array containing the event_string and template_string, which are useful for log analysis and pattern recognition.
   def parse
     template_dict = {}
 
@@ -91,8 +175,9 @@ class Parser
       dynamic_indices = gram_checker(tokens)
       template = template_generator(tokens, dynamic_indices)
 
-      # Remove specific characters from the template
-      template.gsub!(/[,'"]/, '') # TODO: SANITY CHECK IF THIS IS EQUIVALENT TO THE OLD REGEX, P SURE IT IS
+      # TODO: The Python iteration of the parser does a few regex checks here on the templates
+      # It's unclear based on prelimilarly data if we need this, but once the full plugin has been fleshed out we can revisit
+      template.gsub!(/[,'"]/, '') 
 
       id = Digest::MD5.hexdigest(template)[0...4]
 
