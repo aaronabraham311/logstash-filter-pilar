@@ -4,6 +4,9 @@ Metrics/MethodLength:
 Metrics/BlockLength:
   Enabled: False
 
+Metrics/AbcSize:
+  Enabled: False
+
 Gemspec/DevelopmentDependencies:
   Enabled: False
 

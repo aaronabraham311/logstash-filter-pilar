@@ -63,4 +63,40 @@ describe Preprocessor do
       expect(tokens).not_to include('123-45-6789')
     end
   end
+
+  describe '#upload_grams_to_gram_dict' do
+    let(:tokens) { %w[token1 token2 token3] }
+
+    before do
+      allow(gram_dict).to receive(:single_gram_upload)
+      allow(gram_dict).to receive(:double_gram_upload)
+      allow(gram_dict).to receive(:tri_gram_upload)
+      preprocessor.upload_grams_to_gram_dict(tokens)
+    end
+
+    it 'uploads single grams for each token' do
+      tokens.each do |token|
+        expect(gram_dict).to have_received(:single_gram_upload).with(token)
+      end
+    end
+
+    it 'uploads digrams for consecutive tokens' do
+      expect(gram_dict).to have_received(:double_gram_upload).with('token1^token2')
+      expect(gram_dict).to have_received(:double_gram_upload).with('token2^token3')
+    end
+
+    it 'uploads trigrams for every three consecutive tokens' do
+      expect(gram_dict).to have_received(:tri_gram_upload).with('token1^token2^token3')
+    end
+
+    context 'when tokens array is empty' do
+      let(:tokens) { [] }
+
+      it 'does not upload any grams' do
+        expect(gram_dict).not_to have_received(:single_gram_upload)
+        expect(gram_dict).not_to have_received(:double_gram_upload)
+        expect(gram_dict).not_to have_received(:tri_gram_upload)
+      end
+    end
+  end
 end
