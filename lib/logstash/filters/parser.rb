@@ -1,85 +1,76 @@
 # frozen_string_literal: true
 
 require 'digest'
+require 'logstash/filters/gramdict'
 
 # Define a Parser class for processing tokens and generating templates.
 class Parser
-  def initialize(tokens_list, single_dict, double_dict, tri_dict, threshold)
+  def initialize(tokens_list, gramdict, threshold)
     @tokens_list = tokens_list
-    @single_dict = single_dict
-    @double_dict = double_dict
-    @tri_dict = tri_dict
+    @gramdict = gramdict
     @threshold = threshold
-
-    @entropy_dict = {}
   end
 
-  # Helper method to update entropy dictionary
-  def update_entropy_dict(f_score)
-    f_str = f_score.to_s
-    if @entropy_dict.include?(f_str)
-      @entropy_dict[f_str] += 1
+  def is_dynamic(tokens, dynamic_indices, index)
+    frequency = if index.zero?
+                  1
+                else
+                  calculate_frequency(tokens, dynamic_indices, index)
+                end
+    frequency <= @threshold
+  end
+
+  def calculate_frequency(tokens, dynamic_indices, index)
+    if index == 1
+      calculate_bigram_frequency(tokens, index)
+    elsif dynamic_indices.include?(index - 2)
+      calculate_bigram_frequency(tokens,
+                                 index)
     else
-      @entropy_dict[f_str] = 1
+      calculate_trigram_frequency(tokens,
+                                  index)
     end
   end
 
-  def is_dynamic(tokens, dynamic_index, index)
-    f = 0
+  def calculate_bigram_frequency(tokens, index)
+    singlegram = tokens[index - 1]
+    doublegram = "#{singlegram}^#{tokens[index]}"
 
-    if index.zero?
-      f = 1
-    elsif index == 1
-      singlegram = tokens[index - 1]
-      doublegram = "#{tokens[index - 1]}^#{tokens[index]}"
-
-      f = if @double_dict.include?(doublegram) && @single_dict.include?(singlegram)
-            @double_dict[doublegram].to_f / @single_dict[singlegram]
-          else
-            0
-          end
-
-      update_entropy_dict(f)
+    if @gramdict.double_gram_dict.include?(doublegram) && @gramdict.single_gram_dict.include?(singlegram)
+      @gramdict.double_gram_dict[doublegram].to_f / @gramdict.single_gram_dict[singlegram]
     else
-      if dynamic_index.include?(index - 2)
-        singlegram = tokens[index - 1]
-        doublegram = "#{tokens[index - 1]}^#{tokens[index]}"
-        f = if @double_dict.include?(doublegram) && @single_dict.include?(singlegram)
-              @double_dict[doublegram].to_f / @single_dict[singlegram]
-            else
-              0
-            end
-      else
-        doublegram = "#{tokens[index - 2]}^#{tokens[index - 1]}"
-        trigram = "#{doublegram}^#{tokens[index]}"
-        f = if @tri_dict.include?(trigram) && @double_dict.include?(doublegram)
-              @tri_dict[trigram].to_f / @double_dict[doublegram]
-            else
-              0
-            end
-      end
-      update_entropy_dict(f)
+      0
     end
-    f <= @threshold
+  end
+
+  def calculate_trigram_frequency(tokens, index)
+    doublegram = "#{tokens[index - 2]}^#{tokens[index - 1]}"
+    trigram = "#{doublegram}^#{tokens[index]}"
+
+    if @gramdict.tri_gram_dict.include?(trigram) && @gramdict.double_gram_dict.include?(doublegram)
+      @gramdict.tri_gram_dict[trigram].to_f / @gramdict.double_gram_dict[doublegram]
+    else
+      0
+    end
   end
 
   def gram_checker(tokens)
-    dynamic_index = []
+    dynamic_indices = []
     if tokens.length >= 2
       index = 1
       while index < tokens.length
-        dynamic_index << index if is_dynamic(tokens, dynamic_index, index) # Directly calling is_dynamic
+        dynamic_indices << index if is_dynamic(tokens, dynamic_indices, index) # Directly calling is_dynamic
         index += 1
       end
     end
-    dynamic_index
+    dynamic_indices
   end
 
-  def template_generator(tokens, dynamic_index)
+  def template_generator(tokens, dynamic_indices)
     template = String.new('')
     tokens.each_with_index do |token, index|
       # this looks wack but rubocop made me do it
-      template << if dynamic_index.include?(index)
+      template << if dynamic_indices.include?(index)
                     '<*> '
                   else
                     "#{token} "
@@ -97,8 +88,8 @@ class Parser
     template_string = String.new("EventTemplate,Occurrences\n")
 
     @tokens_list.each do |tokens|
-      dynamic_index = gram_checker(tokens)
-      template = template_generator(tokens, dynamic_index)
+      dynamic_indices = gram_checker(tokens)
+      template = template_generator(tokens, dynamic_indices)
 
       # Remove specific characters from the template
       template.gsub!(/[,'"]/, '') # TODO: SANITY CHECK IF THIS IS EQUIVALENT TO THE OLD REGEX, P SURE IT IS

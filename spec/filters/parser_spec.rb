@@ -3,44 +3,32 @@
 require 'rspec'
 require_relative '../spec_helper'
 require 'logstash/filters/parser'
+require 'logstash/filters/gramdict'
 
 describe Parser do
   let(:tokens_list) { [%w[token1a token1b], %w[token2a token2b token2c], %w[token3a token3b]] }
-  let(:single_dict) { { 'token2a' => 2, 'key2' => 2 } }
-  let(:double_dict) { { 'token2a^token2b' => 2, 'token2b' => 4 } }
-  let(:tri_dict)    { { 'token2a^token2b^token2c' => 5, 'key2' => 6 } }
   let(:threshold)   { 0.5 }
 
-  # Create an instance of parser
-  subject(:parser) { Parser.new(tokens_list, single_dict, double_dict, tri_dict, threshold) }
+  # Create an instance of GramDict
+  let(:gramdict) do
+    gd = GramDict.new('.', '%Y-%m-%d', /.*/, 0.5)
+
+    # Manually setting the dictionaries
+    gd.instance_variable_set(:@single_gram_dict, { 'token2a' => 2, 'key2' => 2 })
+    gd.instance_variable_set(:@double_gram_dict, { 'token2a^token2b' => 2, 'token2b' => 4 })
+    gd.instance_variable_set(:@tri_gram_dict,    { 'token2a^token2b^token2c' => 5, 'key2' => 6 })
+
+    gd
+  end
+
+  # Create an instance of Parser
+  subject(:parser) { Parser.new(tokens_list, gramdict, threshold) }
 
   describe '#initialize' do
     it 'initializes with the correct attributes' do
       expect(parser.instance_variable_get(:@tokens_list)).to eq(tokens_list)
-      expect(parser.instance_variable_get(:@single_dict)).to eq(single_dict)
-      expect(parser.instance_variable_get(:@double_dict)).to eq(double_dict)
-      expect(parser.instance_variable_get(:@tri_dict)).to eq(tri_dict)
+      expect(parser.instance_variable_get(:@gramdict)).to eq(gramdict)
       expect(parser.instance_variable_get(:@threshold)).to eq(threshold)
-      expect(parser.instance_variable_get(:@entropy_dict)).to eq({})
-    end
-  end
-
-  describe '#update_entropy_dict' do
-    it 'updates the entropy dictionary correctly for new f_score values' do
-      f_score_new = 0.75
-      parser.update_entropy_dict(f_score_new)
-
-      expect(parser.instance_variable_get(:@entropy_dict)).to eq({ '0.75' => 1 })
-    end
-
-    it 'increments the count correctly for existing f_score values' do
-      f_score_existing = 0.5
-
-      # Add the f_score twice to simulate existing value
-      parser.update_entropy_dict(f_score_existing)
-      parser.update_entropy_dict(f_score_existing)
-
-      expect(parser.instance_variable_get(:@entropy_dict)).to eq({ '0.5' => 2 })
     end
   end
 
@@ -99,11 +87,11 @@ describe Parser do
   describe '#parse' do
     it 'parses the tokens list and generates strings in the correct format' do
       event_string, template_string = parser.parse
-      
+
       expected_event_string = "EventId,EventTemplate\n" \
-                                 "e7f6f,token1a <*> \n" \
-                                 "e5a48,token2a token2b token2c \n" \
-                                 "e733e,token3a <*> \n"
+                              "e7f6f,token1a <*> \n" \
+                              "e5a48,token2a token2b token2c \n" \
+                              "e733e,token3a <*> \n"
 
       expected_template_string = "EventTemplate,Occurrences\n" \
                                  "token1a <*> ,1\n" \
