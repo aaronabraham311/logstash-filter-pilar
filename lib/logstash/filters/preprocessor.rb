@@ -120,7 +120,7 @@ class Preprocessor
   #
   # @param log_line [String] the log line to be processed
   # @return [Array, nil] an array of tokens if matches are found, otherwise nil
-  def token_spliter(log_line)
+  def token_splitter(log_line)
     # Finds matches in the stripped line for the regex format
     stripped_log_line = log_line.strip
     match = stripped_log_line.match(@format)
@@ -171,6 +171,31 @@ class Preprocessor
       second_token = tokens[index - 1]
       trigram = first_token + token_seperator + second_token + token_seperator + token
       @gram_dict.tri_gram_upload(trigram)
+    end
+  end
+
+  # Processes a given log event by tokenizing it and updating the gram dictionary.
+  #
+  # This method first calls the `token_splitter` method to split the log event into tokens based on the
+  # pre-configured format.
+  # The tokens are then passed to the `upload_grams_to_gram_dict` method, which iteratively uploads single grams,
+  # digrams, and trigrams to the `@gram_dict`.
+  #
+  # The process involves two primary steps: tokenization and dictionary updating.
+  # Tokenization is done based on the log format and involves masking sensitive information before splitting.
+  # Each token, digram, and trigram found in the log event is then uploaded to the gram dictionary, enhancing the
+  # dictionary's ability to process future log events.
+  #
+  # @param log_event [String] the log event to be processed
+  # @return [void] this method does not return a value but updates the @gram_dict object by adding new entries
+  #  based on the tokens extracted from the log event.
+  def process_log_event(log_event)
+    # Split log event into tokens
+    tokens = token_splitter(log_event)
+
+    # Upload tokens to gram dictionary if exists
+    if tokens != nil
+      upload_grams_to_gram_dict(tokens)
     end
   end
 end
