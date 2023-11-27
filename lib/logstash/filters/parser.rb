@@ -15,7 +15,7 @@ require 'logstash/filters/gramdict'
 # - calculate_frequency: Calculates frequency of a token considering its index position.
 # - calculate_bigram_frequency: Determines frequency based on adjacent tokens (bigrams).
 # - calculate_trigram_frequency: Calculates frequency based on trigram context.
-# - gram_checker: Identifies all dynamic tokens in a log entry.
+# - find_dynamic_indices: Identifies all dynamic tokens in a log entry.
 # - template_generator: Generates a log template by replacing dynamic tokens.
 # - parse: Processes each token list to generate event strings and templates.
 class Parser
@@ -122,7 +122,7 @@ class Parser
   #
   # Returns:
   # An array of indices corresponding to dynamic tokens within the log entry. 
-  def gram_checker(tokens)
+  def find_dynamic_indices(tokens)
     dynamic_indices = []
     if tokens.length >= 2
       index = 1
@@ -172,7 +172,7 @@ class Parser
     template_string = String.new("EventTemplate,Occurrences\n")
 
     @tokens_list.each do |tokens|
-      dynamic_indices = gram_checker(tokens)
+      dynamic_indices = find_dynamic_indices(tokens)
       template = template_generator(tokens, dynamic_indices)
 
       # TODO: The Python iteration of the parser does a few regex checks here on the templates
