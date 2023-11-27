@@ -13,5 +13,6 @@ end
 group :development do
   gem 'execjs', require: false
   gem 'pre-commit', require: false
+  gem 'rspec', '~> 3.12'
   gem 'rubocop', require: false
 end

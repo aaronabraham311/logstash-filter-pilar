@@ -17,10 +17,10 @@ class Parser
   # Helper method to update entropy dictionary
   def update_entropy_dict(f_score)
     f_str = f_score.to_s
-    if @entropydict.include?(f_str)
-      @entropydict[f_str] += 1
+    if @entropy_dict.include?(f_str)
+      @entropy_dict[f_str] += 1
     else
-      @entropydict[f_str] = 1
+      @entropy_dict[f_str] = 1
     end
   end
 
@@ -44,7 +44,6 @@ class Parser
       if dynamic_index.include?(index - 2)
         singlegram = tokens[index - 1]
         doublegram = "#{tokens[index - 1]}^#{tokens[index]}"
-
         f = if @double_dict.include?(doublegram) && @single_dict.include?(singlegram)
               @double_dict[doublegram].to_f / @single_dict[singlegram]
             else
@@ -53,17 +52,14 @@ class Parser
       else
         doublegram = "#{tokens[index - 2]}^#{tokens[index - 1]}"
         trigram = "#{doublegram}^#{tokens[index]}"
-
-        f = if @tridict.include?(trigram) && @doubledict.include?(doublegram)
-              @tridict[trigram].to_f / @doubledict[doublegram]
+        f = if @tri_dict.include?(trigram) && @double_dict.include?(doublegram)
+              @tri_dict[trigram].to_f / @double_dict[doublegram]
             else
               0
             end
-
       end
       update_entropy_dict(f)
     end
-
     f <= @threshold
   end
 
@@ -80,8 +76,8 @@ class Parser
   end
 
   def template_generator(tokens, dynamic_index)
-    template = ''
-    tokens.each_with_index do |_token, index|
+    template = String.new('')
+    tokens.each_with_index do |token, index|
       # this looks wack but rubocop made me do it
       template << if dynamic_index.include?(index)
                     '<*> '
@@ -97,8 +93,8 @@ class Parser
   def parse
     template_dict = {}
 
-    event_string = "EventId,EventTemplate\n"
-    template_string = "EventTemplate,Occurrences\n"
+    event_string = String.new("EventId,EventTemplate\n")
+    template_string = String.new("EventTemplate,Occurrences\n")
 
     @tokens_list.each do |tokens|
       dynamic_index = gram_checker(tokens)
@@ -118,33 +114,5 @@ class Parser
       template_string << "#{tmp},#{count}\n"
     end
     [event_string, template_string]
-  end
-
-  def template_generator_test(tokens, dynamic_index)
-    dynamic_value = 0
-    static_value = 0
-
-    tokens.each_with_index do |_token, index|
-      if dynamic_index.include?(index)
-        dynamic_value += 1
-      else
-        static_value += 1
-      end
-    end
-
-    [dynamic_value, static_value]
-  end
-
-  def parse_test
-    dynamic_list = []
-    static_list = []
-    @tokens_list.each do |tokens|
-      dynamic_index = gram_checker(tokens)
-      dynamic_value, static_value = template_generator_test(tokens, dynamic_index)
-      dynamic_list << dynamic_value
-      static_list << static_value
-    end
-
-    [dynamic_list, static_list]
   end
 end
