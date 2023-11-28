@@ -139,4 +139,34 @@ class GramDict
       @four_gram_dict[gram] = 1
     end
   end
+
+  # Method: single_gram_dict
+  # This method is a getter for the single_gram_dict
+  #
+  # Parameters:
+  # Nothing.
+  #
+  # Returns:
+  # The @single_gram_dict member
+  attr_reader :single_gram_dict
+
+  # Method: double_gram_dict
+  # This method is a getter for the double_gram_dict
+  #
+  # Parameters:
+  # Nothing.
+  #
+  # Returns:
+  # The @double_gram_dict member
+  attr_reader :double_gram_dict
+
+  # Method: tri_gram_dict
+  # This method is a getter for the tri_gram_dict
+  #
+  # Parameters:
+  # Nothing.
+  #
+  # Returns:
+  # The @tri_gram_dict member
+  attr_reader :tri_gram_dict
 end
