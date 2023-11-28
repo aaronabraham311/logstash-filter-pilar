@@ -4,11 +4,12 @@ require 'digest'
 require 'logstash/filters/gramdict'
 
 # The Parser class is responsible for analyzing log tokens and generating templates and events.
-# It identifies dynamic tokens within logs and creates standardized templates 
+# It identifies dynamic tokens within logs and creates standardized templates
 # by replacing these dynamic tokens. The class is initialized with three parameters:
 # - tokens_list: An array of tokenized log entries.
 # - gramdict: An instance of the GramDict class used for n-gram frequency analysis.
-# - threshold: A numeric value used to determine if a token is dynamic based on its frequency. If it's frequency is less than this threshold, it's dynamic.
+# - threshold: A numeric value used to determine if a token is dynamic based on its frequency.
+# If it's frequency is less than this threshold, it's dynamic.
 #
 # Methods:
 # - is_dynamic: Determines if a token is dynamic by comparing its frequency to the set threshold.
@@ -42,11 +43,14 @@ class Parser
   end
 
   # Method: calculate_frequency
-  # This method determines the frequency of a token within a log entry, considering the context provided by adjacent tokens.
-  # It switches between bigram and trigram frequency calculations based on the token's position and the dynamic status of preceding tokens.
+  # This method determines the frequency of a token within a log entry, considering the context provided by adjacent
+  # tokens.
+  # It switches between bigram and trigram frequency calculations based on the token's position and the dynamic status
+  # of preceding tokens.
   #
-  # The method returns 1 for the first token (index 0), giving it maximum frequency as its assuming no previous context. For the second token (index 1), 
-  # it calculates the bigram frequency. For a token where the token two indices before is dynamic, a bigram is also used as trigram frequency calculation does not make sense on a dynamic token. 
+  # The method returns 1 for the first token (index 0), giving it maximum frequency as its assuming no previous context.
+  # For the second token (index 1), it calculates the bigram frequency. For a token where the token two indices before
+  # is dynamic, a bigram is also used as trigram frequency calculation does not make sense on a dynamic token.
   # In all other cases, it calculates the trigram frequency.
   #
   # Parameters:
@@ -57,7 +61,7 @@ class Parser
   # Returns:
   # The calculated frequency of the token as a float, based on bigram or trigram analysis.
   def calculate_frequency(tokens, dynamic_indices, index)
-    if index == 0 
+    if index.zero?
       1
     elsif index == 1 || dynamic_indices.include?(index - 2)
       calculate_bigram_frequency(tokens, index)
@@ -121,7 +125,7 @@ class Parser
   # tokens: An array of tokens representing the log entry.
   #
   # Returns:
-  # An array of indices corresponding to dynamic tokens within the log entry. 
+  # An array of indices corresponding to dynamic tokens within the log entry.
   def find_dynamic_indices(tokens)
     dynamic_indices = []
     if tokens.length >= 2
@@ -176,8 +180,9 @@ class Parser
       template = template_generator(tokens, dynamic_indices)
 
       # TODO: The Python iteration of the parser does a few regex checks here on the templates
-      # It's unclear based on prelimilarly data if we need this, but once the full plugin has been fleshed out we can revisit
-      template.gsub!(/[,'"]/, '') 
+      # It's unclear based on prelimilarly data if we need this, but once the full plugin has been fleshed out we can
+      # revisit
+      template.gsub!(/[,'"]/, '')
 
       id = Digest::MD5.hexdigest(template)[0...4]
 

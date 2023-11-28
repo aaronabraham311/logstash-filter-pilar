@@ -11,7 +11,7 @@ describe Parser do
 
   # Create an instance of GramDict
   let(:gramdict) do
-    gd = GramDict.new('.', '%Y-%m-%d', /.*/, 0.5)
+    gd = GramDict.new('.', '%Y-%m-%d', 0.5)
 
     # Manually setting the dictionaries
     gd.instance_variable_set(:@single_gram_dict, { 'token2a' => 2, 'key2' => 2 })
@@ -60,11 +60,11 @@ describe Parser do
     end
   end
 
-  describe '#gram_checker' do
+  describe '#find_dynamic_indices' do
     it 'returns the correct dynamic index for a given tokens array' do
       tokens = tokens_list[2]
 
-      dynamic_indices = parser.gram_checker(tokens)
+      dynamic_indices = parser.find_dynamic_indices(tokens)
 
       expected_indices = [1]
 
