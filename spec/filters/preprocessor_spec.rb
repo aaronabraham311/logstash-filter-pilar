@@ -7,10 +7,9 @@ require 'logstash/filters/gramdict'
 
 describe Preprocessor do
   let(:gram_dict) { double('GramDict') }
-  let(:regexes) { [/\d{3}-\d{2}-\d{4}/] }
   let(:logformat) { '<date> <time> <message>' }
   let(:content_specifier) { 'message' }
-  let(:preprocessor) { Preprocessor.new(gram_dict, regexes, logformat, content_specifier) }
+  let(:preprocessor) { Preprocessor.new(gram_dict, logformat, content_specifier) }
 
   describe '#regex_generator' do
     it 'generates a regex based on log format' do

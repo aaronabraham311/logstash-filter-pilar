@@ -25,7 +25,7 @@
 #
 # This class is essential for log management systems where data privacy and security are paramount.
 class Preprocessor
-  def initialize(gram_dict, _regexes, logformat, content_specifier)
+  def initialize(gram_dict, logformat, content_specifier)
     # gram_dict for uploading log event tokens
     @gram_dict = gram_dict
 
