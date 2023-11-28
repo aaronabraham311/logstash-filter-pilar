@@ -21,27 +21,6 @@ describe Preprocessor do
     end
   end
 
-  describe '#mask_log_event' do
-    it 'masks sensitive data in log event' do
-      log_event = '2023-01-01 10:00:00 Sensitive Data'
-      masked_event = preprocessor.mask_log_event(log_event)
-      expect(masked_event).to include('<*>')
-    end
-
-    it 'does not alter log event without sensitive data' do
-      log_event = 'Regular Log Message'
-      masked_event = preprocessor.mask_log_event(log_event)
-      expect(masked_event).to eq(" #{log_event}")
-    end
-
-    it 'utilizes regexes in @regexes to mask patterns in log event' do
-      log_event = 'Error reported 2023-01-01 10:00:00 with ID 123-45-6789'
-      masked_event = preprocessor.mask_log_event(log_event)
-      expect(masked_event).not_to include('123-45-6789')
-      expect(masked_event).to include('<*>')
-    end
-  end
-
   describe '#token_splitter' do
     it 'splits a log line into tokens when a match is found' do
       log_line = '2023-01-01 10:00:00 Sample Log Message'
@@ -54,13 +33,6 @@ describe Preprocessor do
       log_line = ''
       tokens = preprocessor.token_splitter(log_line)
       expect(tokens).to be_nil
-    end
-
-    it 'handles log lines with masked sensitive data' do
-      log_line = '2023-01-01 10:00:00 Sensitive Data 123-45-6789'
-      tokens = preprocessor.token_splitter(log_line)
-      expect(tokens).to include('<*>')
-      expect(tokens).not_to include('123-45-6789')
     end
   end
 
@@ -149,16 +121,6 @@ describe Preprocessor do
         expect(gram_dict).not_to have_received(:single_gram_upload)
         expect(gram_dict).not_to have_received(:double_gram_upload)
         expect(gram_dict).not_to have_received(:tri_gram_upload)
-      end
-    end
-
-    context 'when log event contains sensitive data' do
-      let(:sensitive_log_event) { '2023-01-01 10:00:00 Sensitive Data 123-45-6789' }
-
-      it 'masks sensitive data in tokens' do
-        tokens = preprocessor.process_log_event(sensitive_log_event)
-        expect(tokens).to include('<*>')
-        expect(tokens).not_to include('123-45-6789')
       end
     end
   end

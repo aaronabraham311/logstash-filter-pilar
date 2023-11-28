@@ -214,6 +214,7 @@ DEPENDENCIES
   logstash-devutils
   logstash-filter-pilar!
   pre-commit
+  rspec (~> 3.12)
   rubocop
 
 BUNDLED WITH
