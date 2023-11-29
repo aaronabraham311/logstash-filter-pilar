@@ -6,7 +6,6 @@ require 'logstash/filters/gramdict'
 # The Parser class is responsible for analyzing log tokens and generating templates and events.
 # It identifies dynamic tokens within logs and creates standardized templates
 # by replacing these dynamic tokens. The class is initialized with three parameters:
-# - tokens_list: An array of tokenized log entries.
 # - gramdict: An instance of the GramDict class used for n-gram frequency analysis.
 # - threshold: A numeric value used to determine if a token is dynamic based on its frequency.
 # If it's frequency is less than this threshold, it's dynamic.
@@ -20,8 +19,7 @@ require 'logstash/filters/gramdict'
 # - template_generator: Generates a log template by replacing dynamic tokens.
 # - parse: Processes each token list to generate event strings and templates.
 class Parser
-  def initialize(tokens_list, gramdict, threshold)
-    @tokens_list = tokens_list
+  def initialize(gramdict, threshold)
     @gramdict = gramdict
     @threshold = threshold
   end
@@ -162,38 +160,28 @@ class Parser
   end
 
   # Method: parse
-  # This method processes each tokenized log entry in the tokens_list. It identifies dynamic tokens,
+  # This method processes the log entry represented as tokens. It identifies dynamic tokens,
   # generates a log template, and then compiles two strings: event_string and template_string.
   # The event_string maps each event to its template, while template_string counts the occurrences
   # of each template. It also ensures that templates are properly formatted by removing certain characters.
-  #
+
+  # Parameters:
+  # tokens: An array of tokens from the log entry.
   # Returns:
   # An array containing the event_string and template_string, which are useful for log analysis and pattern recognition.
-  def parse
-    template_dict = {}
+  def parse(log_tokens)
+    dynamic_indices = find_dynamic_indices(log_tokens)
+    template_string = template_generator(log_tokens, dynamic_indices)
 
-    event_string = String.new("EventId,EventTemplate\n")
-    template_string = String.new("EventTemplate,Occurrences\n")
+    # TODO: The Python iteration of the parser does a few regex checks here on the templates
+    # It's unclear based on prelimilarly data if we need this, but once the full plugin has been fleshed out we can
+    # revisit
+    template_string.gsub!(/[,'"]/, '')
 
-    @tokens_list.each do |tokens|
-      dynamic_indices = find_dynamic_indices(tokens)
-      template = template_generator(tokens, dynamic_indices)
+    id = Digest::MD5.hexdigest(template_string)[0...4]
 
-      # TODO: The Python iteration of the parser does a few regex checks here on the templates
-      # It's unclear based on prelimilarly data if we need this, but once the full plugin has been fleshed out we can
-      # revisit
-      template.gsub!(/[,'"]/, '')
+    event_string = "e#{id},#{template_string}\n"
 
-      id = Digest::MD5.hexdigest(template)[0...4]
-
-      event_string << "e#{id},#{template}\n"
-
-      template_dict[template] = template_dict.fetch(template, 0) + 1
-    end
-
-    template_dict.each do |tmp, count|
-      template_string << "#{tmp},#{count}\n"
-    end
     [event_string, template_string]
   end
 end

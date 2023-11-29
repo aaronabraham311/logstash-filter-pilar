@@ -5,17 +5,13 @@ require_relative '../spec_helper'
 require 'logstash/filters/gramdict'
 
 describe GramDict do
-  let(:separator) { ',' }
   let(:logformat) { '<date> <time> <message>' }
-  let(:ratio) { 0.5 }
 
-  subject { GramDict.new(separator, logformat, ratio) }
+  subject { GramDict.new(logformat) }
 
   describe '#initialize' do
     it 'initializes with the correct attributes' do
-      expect(subject.instance_variable_get(:@separator)).to eq(separator)
       expect(subject.instance_variable_get(:@logformat)).to eq(logformat)
-      expect(subject.instance_variable_get(:@ratio)).to eq(ratio)
     end
   end
 

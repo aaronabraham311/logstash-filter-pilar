@@ -1,41 +1,43 @@
 # frozen_string_literal: true
 
 require 'logstash/filters/base'
+require 'logstash/filters/gramdict'
+require 'logstash/filters/preprocessor'
 
-# This pilar filter will replace the contents of the default
-# message field with whatever you specify in the configuration.
-#
-# It is only intended to be used as an pilar.
 module LogStash
   module Filters
-    # Parses log events using PILAR
     class Pilar < LogStash::Filters::Base
-      # Setting the config_name here is required. This is how you
-      # configure this filter from your Logstash config.
-      #
-      # filter {
-      #   pilar {
-      #     message => "My message..."
-      #   }
-      # }
-      #
       config_name 'pilar'
 
-      # Replace the message with this value.
-      config :message, validate: :string, default: 'Hello World!'
+      # Optional configuration: Specify the field name that contains the message to be used.
+      # If this is not set, the filter will use the value of the "message" field by default.
+      config :source_field, validate: :string, default: 'message'
 
       def register
-        # Add instance variables
+        @gramdict = GramDict.new() # Assuming GramDict is another class you have defined
+        @preprocessor = Preprocessor.new(@gramdict, "<date> <time> <message>", 'message')
       end
 
       def filter(event)
-        if @message
-          # Replace the event message with our message as configured in the
-          # config file.
-          event.set('message', @message)
-        end
+        # Use the message from the specified source field
+        if event.get(@source_field)
 
-        # filter_matched should go in the last line of our successful code
+
+          processed_log = @preprocessor.process_log_event(event.get(@source_field))
+
+          # Check if log parsing was successful
+          if processed_log
+            event_string, template_string = processed_log
+
+            # Set the new values in the returned event
+            event.set('event_string', event_string)
+            event.set('template_string', template_string)
+          end
+
+          # include the raw log message
+          event.set('raw_log', event.get(@source_field))
+        end
+        
         filter_matched(event)
       end
     end

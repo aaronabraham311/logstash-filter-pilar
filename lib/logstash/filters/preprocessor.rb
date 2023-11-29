@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'logstash/filters/parser'
 
 # The Preprocessor class is designed for processing and masking log events.
 # This class provides functionality to parse, anonymize, and sanitize log data,
@@ -126,7 +127,7 @@ class Preprocessor
     end
   end
 
-  # Processes a given log event by tokenizing it and updating the gram dictionary.
+  # Processes a given log event by tokenizing it, parsing it, and updating the gram dictionary.
   #
   # This method first calls the `token_splitter` method to split the log event into tokens based on the
   # pre-configured format.
@@ -139,15 +140,22 @@ class Preprocessor
   # dictionary's ability to process future log events.
   #
   # @param log_event [String] the log event to be processed
-  # @return [void] this method does not return a value but updates the @gram_dict object by adding new entries
-  #  based on the tokens extracted from the log event.
+  # @return event_string [String], template_string[String], which are useful for log analysis and pattern recognition.
+  # It also updates the gram dict based on this information.
   def process_log_event(log_event)
     # Split log event into tokens
     tokens = token_splitter(log_event)
 
-    # Upload tokens to gram dictionary if exists
+    # If no tokens were returned, do not parse the logs and return
     return if tokens.nil?
 
+    # Parse the log based on the pre-existing gramdict data    
+    parser = Parser.new(@gram_dict, 0.5)
+    event_string, template_string = parser.parse(tokens)
+
+    # Update gram_dict
     upload_grams_to_gram_dict(tokens)
+
+    [event_string, template_string]
   end
 end
