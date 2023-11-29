@@ -35,7 +35,7 @@ class Parser
   #
   # Returns:
   # A boolean indicating whether the token is dynamic (true) or static (false).
-  def is_dynamic(tokens, dynamic_indices, index)
+  def dynamic_token?(tokens, dynamic_indices, index)
     frequency = calculate_frequency(tokens, dynamic_indices, index)
     frequency <= @threshold
   end
@@ -166,7 +166,7 @@ class Parser
   # of each template. It also ensures that templates are properly formatted by removing certain characters.
 
   # Parameters:
-  # tokens: An array of tokens from the log entry.
+  # log_tokens: An array of tokens from the log entry.
   # Returns:
   # An array containing the event_string and template_string, which are useful for log analysis and pattern recognition.
   def parse(log_tokens)

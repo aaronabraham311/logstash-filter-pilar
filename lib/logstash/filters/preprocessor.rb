@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'logstash/filters/parser'
 
 # The Preprocessor class is designed for processing and masking log events.
@@ -149,7 +150,7 @@ class Preprocessor
     # If no tokens were returned, do not parse the logs and return
     return if tokens.nil?
 
-    # Parse the log based on the pre-existing gramdict data    
+    # Parse the log based on the pre-existing gramdict data
     parser = Parser.new(@gram_dict, 0.5)
     event_string, template_string = parser.parse(tokens)
 

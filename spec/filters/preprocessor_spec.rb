@@ -6,7 +6,7 @@ require 'logstash/filters/preprocessor'
 require 'logstash/filters/gramdict'
 
 describe Preprocessor do
-  let(:gram_dict) { GramDict.new() }
+  let(:gram_dict) { GramDict.new }
   let(:logformat) { '<date> <time> <message>' }
   let(:content_specifier) { 'message' }
   let(:preprocessor) { Preprocessor.new(gram_dict, logformat, content_specifier) }

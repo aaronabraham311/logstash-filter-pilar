@@ -11,7 +11,7 @@ describe Parser do
 
   # Create an instance of GramDict
   let(:gramdict) do
-    gd = GramDict.new()
+    gd = GramDict.new
 
     # Manually setting the dictionaries
     gd.instance_variable_set(:@single_gram_dict, { 'token2a' => 2, 'key2' => 2 })
@@ -90,7 +90,7 @@ describe Parser do
 
       expected_event_string = "e5a48,token2a token2b token2c \n"
 
-      expected_template_string = "token2a token2b token2c "
+      expected_template_string = 'token2a token2b token2c '
 
       expect(event_string).to eq(expected_event_string)
       expect(template_string).to eq(expected_template_string)

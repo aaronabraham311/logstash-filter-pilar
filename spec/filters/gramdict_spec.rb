@@ -7,7 +7,7 @@ require 'logstash/filters/gramdict'
 describe GramDict do
   let(:logformat) { '<date> <time> <message>' }
 
-  subject { GramDict.new() }
+  subject { GramDict.new }
 
   describe '#single_gram_upload' do
     let(:gram) { 'example' }
