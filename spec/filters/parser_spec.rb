@@ -31,14 +31,14 @@ describe Parser do
     end
   end
 
-  describe '#is_dynamic' do
+  describe '#dynamic_token?' do
     let(:dynamic_index) { [] }
 
     context 'when the token index is zero' do
       it 'identifies the token as dynamic' do
         tokens = tokens_list.first
         index = 0
-        expect(parser.is_dynamic(tokens, dynamic_index, index)).to be false
+        expect(parser.dynamic_token?(tokens, dynamic_index, index)).to be false
       end
     end
 
@@ -46,7 +46,7 @@ describe Parser do
       it 'identifies the token as not dynamic' do
         tokens = tokens_list[1]
         index = 1
-        expect(parser.is_dynamic(tokens, dynamic_index, index)).to be false
+        expect(parser.dynamic_token?(tokens, dynamic_index, index)).to be false
       end
     end
 
@@ -54,7 +54,7 @@ describe Parser do
       it 'identifies the token as dynamic' do
         tokens = tokens_list[1]
         index = 2
-        expect(parser.is_dynamic(tokens, dynamic_index, index)).to be false
+        expect(parser.dynamic_token?(tokens, dynamic_index, index)).to be false
       end
     end
   end

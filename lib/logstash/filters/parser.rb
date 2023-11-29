@@ -11,7 +11,7 @@ require 'logstash/filters/gramdict'
 # If it's frequency is less than this threshold, it's dynamic.
 #
 # Methods:
-# - is_dynamic: Determines if a token is dynamic by comparing its frequency to the set threshold.
+# - dynamic_token?: Determines if a token is dynamic by comparing its frequency to the set threshold.
 # - calculate_frequency: Calculates frequency of a token considering its index position.
 # - calculate_bigram_frequency: Determines frequency based on adjacent tokens (bigrams).
 # - calculate_trigram_frequency: Calculates frequency based on trigram context.
@@ -24,7 +24,7 @@ class Parser
     @threshold = threshold
   end
 
-  # Method: is_dynamic
+  # Method: dynamic_token?
   # This method evaluates if a given token in a log is dynamic by assessing its frequency relative to a set threshold.
   # A token is deemed dynamic if its frequency is equal to or lower than the threshold value.
   #
@@ -116,7 +116,7 @@ class Parser
 
   # Method: gram_checker
   # This method identifies dynamic tokens in a given log entry. It iterates through the tokens
-  # and uses the is_dynamic method to check if each token is dynamic. Dynamic tokens are those
+  # and uses the dynamic_token? method to check if each token is dynamic. Dynamic tokens are those
   # whose frequency is less than or equal to a certain threshold, suggesting variability in log entries.
   #
   # Parameters:
@@ -129,7 +129,7 @@ class Parser
     if tokens.length >= 2
       index = 1
       while index < tokens.length
-        dynamic_indices << index if is_dynamic(tokens, dynamic_indices, index) # Directly calling is_dynamic
+        dynamic_indices << index if dynamic_token?(tokens, dynamic_indices, index) # Directly calling dynamic_token?
         index += 1
       end
     end
