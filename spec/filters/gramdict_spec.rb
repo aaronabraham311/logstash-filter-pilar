@@ -7,13 +7,7 @@ require 'logstash/filters/gramdict'
 describe GramDict do
   let(:logformat) { '<date> <time> <message>' }
 
-  subject { GramDict.new(logformat) }
-
-  describe '#initialize' do
-    it 'initializes with the correct attributes' do
-      expect(subject.instance_variable_get(:@logformat)).to eq(logformat)
-    end
-  end
+  subject { GramDict.new() }
 
   describe '#single_gram_upload' do
     let(:gram) { 'example' }
