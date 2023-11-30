@@ -30,6 +30,9 @@ module LogStash
             # Set the new values in the returned event
             event.set('event_string', event_string)
             event.set('template_string', template_string)
+          else
+            event.set('event_string', nil)
+            event.set('template_string', nil)
           end
 
           # include the raw log message
