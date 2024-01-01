@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'logstash/filters/parser'
+
 # The Preprocessor class is designed for processing and masking log events.
 # This class provides functionality to parse, anonymize, and sanitize log data,
 # ensuring sensitive information is masked before further processing or storage.
@@ -90,7 +92,43 @@ class Preprocessor
     end
   end
 
-  # Processes a given log event by tokenizing it and updating the gram dictionary.
+  # Processes an array of tokens to upload single grams, digrams, and trigrams to the @gram_dict.
+  #
+  # This method iterates through each token in the array. For each token, it uploads the token as a single gram.
+  # Additionally, if the current token is not the first in the array, it creates and uploads a digram using the current
+  # and previous token.
+  # If the token is at least the third in the array, the method also creates and uploads a trigram using the current
+  # token and the two preceding it.
+  # The tokens in digrams and trigrams are separated by a defined separator (`token_seperator`).
+  #
+  # @param tokens [Array<String>] an array of string tokens to be processed
+  # @return [void] this method does not return a value but updates the @gram_dict object.
+  def upload_grams_to_gram_dict(tokens)
+    token_seperator = '^'
+
+    # Iterate across all tokens
+    tokens.each_with_index do |token, index|
+      # Upload single gram
+      @gram_dict.single_gram_upload(token)
+
+      # If possible, upload a digram
+      if index.positive?
+        first_token = tokens[index - 1]
+        digram = first_token + token_seperator + token
+        @gram_dict.double_gram_upload(digram)
+      end
+
+      # If possible, upload a trigram
+      next unless index > 1
+
+      first_token = tokens[index - 2]
+      second_token = tokens[index - 1]
+      trigram = first_token + token_seperator + second_token + token_seperator + token
+      @gram_dict.tri_gram_upload(trigram)
+    end
+  end
+
+  # Processes a given log event by tokenizing it, parsing it, and updating the gram dictionary.
   #
   # This method first calls the `token_splitter` method to split the log event into tokens based on the
   # pre-configured format.
@@ -103,15 +141,22 @@ class Preprocessor
   # dictionary's ability to process future log events.
   #
   # @param log_event [String] the log event to be processed
-  # @return [void] this method does not return a value but updates the @gram_dict object by adding new entries
-  #  based on the tokens extracted from the log event.
+  # @return event_string [String], template_string[String], which are useful for log analysis and pattern recognition.
+  # It also updates the gram dict based on this information.
   def process_log_event(log_event)
     # Split log event into tokens
     tokens = token_splitter(log_event)
 
-    # Upload tokens to gram dictionary if exists
+    # If no tokens were returned, do not parse the logs and return
     return if tokens.nil?
 
-    @gram_dict.upload_grams(tokens)
+    # Parse the log based on the pre-existing gramdict data
+    parser = Parser.new(@gram_dict, 0.5)
+    event_string, template_string = parser.parse(tokens)
+
+    # Update gram_dict
+    upload_grams_to_gram_dict(tokens)
+
+    [event_string, template_string]
   end
 end
