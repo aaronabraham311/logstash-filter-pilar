@@ -21,6 +21,9 @@ require 'logstash/filters/parser'
 #   and formats.
 # - regex_generator(logformat): Generates a regular expression based on a specified log format, useful for parsing logs
 #   with known structures.
+# - token_splitter(log_line): splits a log line into tokens
+# - upload_grams_to_gram_dict(tokens): uploads a list of tokens into the single_gram, bi_gram and tri_gram dictionaries
+# - process_log_event(event): processes an entire log event by calling Parser.parse()
 #
 # Example:
 #   preprocessor = Preprocessor.new(gram_dict, regexes, logformat)
@@ -75,8 +78,10 @@ class Preprocessor
 
   # Splits a log line into tokens based on a given format and regular expression.
   #
-  # @param log_line [String] the log line to be processed
-  # @return [Array, nil] an array of tokens if matches are found, otherwise nil
+  # Parameters:
+  # log_line [String] the log line to be processed
+  # Returns:
+  # [Array, nil] an array of tokens if matches are found, otherwise nil
   def token_splitter(log_line)
     # Finds matches in the stripped line for the regex format
     stripped_log_line = log_line.strip
@@ -101,8 +106,11 @@ class Preprocessor
   # token and the two preceding it.
   # The tokens in digrams and trigrams are separated by a defined separator (`token_seperator`).
   #
-  # @param tokens [Array<String>] an array of string tokens to be processed
-  # @return [void] this method does not return a value but updates the @gram_dict object.
+  # Parameters:
+  # tokens [Array<String>] an array of string tokens to be processed
+  #
+  # Returns:
+  # this method does not return a value but updates the @gram_dict object.
   def upload_grams_to_gram_dict(tokens)
     token_seperator = '^'
 
@@ -140,8 +148,11 @@ class Preprocessor
   # Each token, digram, and trigram found in the log event is then uploaded to the gram dictionary, enhancing the
   # dictionary's ability to process future log events.
   #
-  # @param log_event [String] the log event to be processed
-  # @return event_string [String], template_string[String], which are useful for log analysis and pattern recognition.
+  # Parameters:
+  # log_event [String] the log event to be processed
+  #
+  # Returns:
+  # event_string [String], template_string[String], which are useful for log analysis and pattern recognition.
   # It also updates the gram dict based on this information.
   def process_log_event(log_event)
     # Split log event into tokens

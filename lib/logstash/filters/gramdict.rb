@@ -9,6 +9,7 @@
 # - double_gram_upload(gram): Updates the count of a double word combination in the dictionary.
 # - tri_gram_upload(gram): Updates the count of a triple word combination in the dictionary.
 # - four_gram_upload(gram): Updates the count of a four-word combination in the dictionary.
+# - Getters for each gram_dict (asides from four_gram_dict)
 #
 # This class is useful for log file analysis, especially for identifying common patterns
 # and anomalies in log entries.
