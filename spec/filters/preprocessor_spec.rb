@@ -35,48 +35,12 @@ describe Preprocessor do
     end
   end
 
-  describe '#upload_grams_to_gram_dict' do
-    let(:tokens) { %w[token1 token2 token3] }
-
-    before do
-      allow(gram_dict).to receive(:single_gram_upload)
-      allow(gram_dict).to receive(:double_gram_upload)
-      allow(gram_dict).to receive(:tri_gram_upload)
-      preprocessor.upload_grams_to_gram_dict(tokens)
-    end
-
-    it 'uploads single grams for each token' do
-      tokens.each do |token|
-        expect(gram_dict).to have_received(:single_gram_upload).with(token)
-      end
-    end
-
-    it 'uploads digrams for consecutive tokens' do
-      expect(gram_dict).to have_received(:double_gram_upload).with('token1^token2')
-      expect(gram_dict).to have_received(:double_gram_upload).with('token2^token3')
-    end
-
-    it 'uploads trigrams for every three consecutive tokens' do
-      expect(gram_dict).to have_received(:tri_gram_upload).with('token1^token2^token3')
-    end
-
-    context 'when tokens array is empty' do
-      let(:tokens) { [] }
-
-      it 'does not upload any grams' do
-        expect(gram_dict).not_to have_received(:single_gram_upload)
-        expect(gram_dict).not_to have_received(:double_gram_upload)
-        expect(gram_dict).not_to have_received(:tri_gram_upload)
-      end
-    end
-  end
-
   describe '#process_log_event' do
     let(:log_event) { '2023-01-01 10:00:00 Sample Log Event' }
 
     before do
       allow(preprocessor).to receive(:token_splitter).and_call_original
-      allow(preprocessor).to receive(:upload_grams_to_gram_dict).and_call_original
+      allow(gram_dict).to receive(:upload_grams)
       allow(gram_dict).to receive(:single_gram_upload)
       allow(gram_dict).to receive(:double_gram_upload)
       allow(gram_dict).to receive(:tri_gram_upload)
@@ -92,34 +56,24 @@ describe Preprocessor do
 
       before do
         allow(preprocessor).to receive(:token_splitter).and_return(tokens)
+        allow(gram_dict).to receive(:upload_grams)
         preprocessor.process_log_event(log_event)
       end
 
-      it 'calls upload_grams_to_gram_dict with extracted tokens' do
-        expect(preprocessor).to have_received(:upload_grams_to_gram_dict).with(tokens)
-      end
-
-      it 'uploads grams for each token' do
-        tokens.each do |token|
-          expect(gram_dict).to have_received(:single_gram_upload).with(token)
-        end
+      it 'calls upload_grams with extracted tokens' do
+        expect(gram_dict).to have_received(:upload_grams)
       end
     end
 
     context 'when no tokens are extracted from log event (token_splitter returns nil)' do
       before do
         allow(preprocessor).to receive(:token_splitter).and_return(nil)
+        allow(gram_dict).to receive(:upload_grams)
         preprocessor.process_log_event(log_event)
       end
 
-      it 'does not call upload_grams_to_gram_dict' do
-        expect(preprocessor).not_to have_received(:upload_grams_to_gram_dict)
-      end
-
-      it 'does not upload any grams' do
-        expect(gram_dict).not_to have_received(:single_gram_upload)
-        expect(gram_dict).not_to have_received(:double_gram_upload)
-        expect(gram_dict).not_to have_received(:tri_gram_upload)
+      it 'does not call upload_grams' do
+        expect(gram_dict).not_to have_received(:upload_grams)
       end
     end
   end

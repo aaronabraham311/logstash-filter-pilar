@@ -121,4 +121,40 @@ class GramDict
   # Returns:
   # The @tri_gram_dict member
   attr_reader :tri_gram_dict
+
+  # Processes an array of tokens to upload single grams, digrams, and trigrams to the @gram_dict.
+  #
+  # This method iterates through each token in the array. For each token, it uploads the token as a single gram.
+  # Additionally, if the current token is not the first in the array, it creates and uploads a digram using the current
+  # and previous token.
+  # If the token is at least the third in the array, the method also creates and uploads a trigram using the current
+  # token and the two preceding it.
+  # The tokens in digrams and trigrams are separated by a defined separator (`token_seperator`).
+  #
+  # @param tokens [Array<String>] an array of string tokens to be processed
+  # @return [void] this method does not return a value but updates single_gram_dict, double_gram_dict and tri_gram_dict
+  def upload_grams(tokens)
+    token_seperator = '^'
+
+    # Iterate across all tokens
+    tokens.each_with_index do |token, index|
+      # Upload single gram
+      single_gram_upload(token)
+
+      # If possible, upload a digram
+      if index.positive?
+        first_token = tokens[index - 1]
+        digram = first_token + token_seperator + token
+        double_gram_upload(digram)
+      end
+
+      # If possible, upload a trigram
+      next unless index > 1
+
+      first_token = tokens[index - 2]
+      second_token = tokens[index - 1]
+      trigram = first_token + token_seperator + second_token + token_seperator + token
+      tri_gram_upload(trigram)
+    end
+  end
 end
