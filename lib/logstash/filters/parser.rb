@@ -12,7 +12,7 @@ require 'logstash/filters/gramdict'
 #
 # Methods:
 # - dynamic_token?: Determines if a token is dynamic by comparing its frequency to the set threshold.
-# - calculate_frequency: Calculates frequency of a token considering its index position.
+# - calculate_token_frequency: Calculates frequency of a token considering its index position.
 # - calculate_bigram_frequency: Determines frequency based on adjacent tokens (bigrams).
 # - calculate_trigram_frequency: Calculates frequency based on trigram context.
 # - find_dynamic_indices: Identifies all dynamic tokens in a log entry.
@@ -36,11 +36,11 @@ class Parser
   # Returns:
   # A boolean indicating whether the token is dynamic (true) or static (false).
   def dynamic_token?(tokens, dynamic_indices, index)
-    frequency = calculate_frequency(tokens, dynamic_indices, index)
+    frequency = calculate_token_frequency(tokens, dynamic_indices, index)
     frequency <= @threshold
   end
 
-  # Method: calculate_frequency
+  # Method: calculate_token_frequency
   # This method determines the frequency of a token within a log entry, considering the context provided by adjacent
   # tokens.
   # It switches between bigram and trigram frequency calculations based on the token's position and the dynamic status
@@ -58,7 +58,7 @@ class Parser
   #
   # Returns:
   # The calculated frequency of the token as a float, based on bigram or trigram analysis.
-  def calculate_frequency(tokens, dynamic_indices, index)
+  def calculate_token_frequency(tokens, dynamic_indices, index)
     if index.zero?
       1
     elsif index == 1 || dynamic_indices.include?(index - 2)
@@ -114,7 +114,7 @@ class Parser
     end
   end
 
-  # Method: gram_checker
+  # Method: find_dynamic_indices
   # This method identifies dynamic tokens in a given log entry. It iterates through the tokens
   # and uses the dynamic_token? method to check if each token is dynamic. Dynamic tokens are those
   # whose frequency is less than or equal to a certain threshold, suggesting variability in log entries.

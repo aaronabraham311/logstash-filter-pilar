@@ -9,6 +9,7 @@
 # - double_gram_upload(gram): Updates the count of a double word combination in the dictionary.
 # - tri_gram_upload(gram): Updates the count of a triple word combination in the dictionary.
 # - four_gram_upload(gram): Updates the count of a four-word combination in the dictionary.
+# - Getters for each gram_dict (asides from four_gram_dict)
 #
 # This class is useful for log file analysis, especially for identifying common patterns
 # and anomalies in log entries.
@@ -130,8 +131,11 @@ class GramDict
   # token and the two preceding it.
   # The tokens in digrams and trigrams are separated by a defined separator (`token_seperator`).
   #
-  # @param tokens [Array<String>] an array of string tokens to be processed
-  # @return [void] this method does not return a value but updates single_gram_dict, double_gram_dict and tri_gram_dict
+  # Parameters:
+  # tokens [Array<String>] an array of string tokens to be processed
+  #
+  # Returns:
+  # [void] this method does not return a value but updates single_gram_dict, double_gram_dict and tri_gram_dict
   def upload_grams(tokens)
     token_seperator = '^'
 
