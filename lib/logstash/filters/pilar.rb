@@ -33,6 +33,7 @@ module LogStash
       def filter(event)
         # Use the message from the specified source field
         if event.get(@source_field)
+          start_time = Time.now
           processed_log = @preprocessor.process_log_event(event.get(@source_field))
 
           if processed_log
@@ -51,6 +52,9 @@ module LogStash
         end
 
         # Emit event
+        end_time = Time.now
+        duration  = end_time - start_time 
+        event.set('processing_duration', duration)
         filter_matched(event)
       end
     end
