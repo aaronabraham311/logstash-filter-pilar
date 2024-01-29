@@ -24,7 +24,7 @@ module LogStash
       # If the probability that the token is a dynamic token is above this threshold, the token is considered
       # dynamic. The default threshold is set at 0.5. Since this is a probability threshold, the config value
       # must be between 0 and 1.
-      config :dynamic_token_threshold, validate: :float, required: false, default: 0.5
+      config :dynamic_token_threshold, validate: :number, required: false, default: 0.5
 
       # The standard log format for the application must be included in this plugin's configuration in the format
       # of "<log_part_1_placeholder> <log_part_2_placeholder> ...". For example, if logs are usually of the form
@@ -40,7 +40,12 @@ module LogStash
 
       def register
         @gramdict = GramDict.new
-        @preprocessor = Preprocessor.new(@gramdict, '<date> <time> <message>', 'message')
+        @preprocessor = Preprocessor.new(@gramdict, @logformat, @content_specifier)
+
+        # Check if dynamic_token_threshold is between 0 and 1
+        if @dynamic_token_threshold < 0.0 || @dynamic_token_threshold > 1.0
+          raise LogStash::ConfigurationError, 'dynamic_token_threshold must be between 0 and 1'
+        end
 
         # populate gramdict with seed logs
         return unless @seed_logs_path
@@ -57,7 +62,9 @@ module LogStash
       def filter(event)
         # Use the message from the specified source field
         if event.get(@source_field)
-          processed_log = @preprocessor.process_log_event(event.get(@source_field))
+          processed_log = @preprocessor.process_log_event(
+            event.get(@source_field), @dynamic_token_threshold
+          )
 
           if processed_log
             event_string, template_string = processed_log

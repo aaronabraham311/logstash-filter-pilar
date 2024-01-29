@@ -9,6 +9,7 @@ describe Preprocessor do
   let(:gram_dict) { GramDict.new }
   let(:logformat) { '<date> <time> <message>' }
   let(:content_specifier) { 'message' }
+  let(:dynamic_token_threshold) { 0.5 }
   let(:preprocessor) { Preprocessor.new(gram_dict, logformat, content_specifier) }
 
   describe '#regex_generator' do
@@ -47,7 +48,7 @@ describe Preprocessor do
     end
 
     it 'calls token_splitter with the log event' do
-      preprocessor.process_log_event(log_event)
+      preprocessor.process_log_event(log_event, dynamic_token_threshold)
       expect(preprocessor).to have_received(:token_splitter).with(log_event)
     end
 
@@ -57,7 +58,7 @@ describe Preprocessor do
       before do
         allow(preprocessor).to receive(:token_splitter).and_return(tokens)
         allow(gram_dict).to receive(:upload_grams)
-        preprocessor.process_log_event(log_event)
+        preprocessor.process_log_event(log_event, dynamic_token_threshold)
       end
 
       it 'calls upload_grams with extracted tokens' do
@@ -69,7 +70,7 @@ describe Preprocessor do
       before do
         allow(preprocessor).to receive(:token_splitter).and_return(nil)
         allow(gram_dict).to receive(:upload_grams)
-        preprocessor.process_log_event(log_event)
+        preprocessor.process_log_event(log_event, dynamic_token_threshold)
       end
 
       it 'does not call upload_grams' do

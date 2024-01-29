@@ -111,11 +111,12 @@ class Preprocessor
   #
   # Parameters:
   # log_event [String] the log event to be processed
+  # dynamic_token_threshold [Float] the threshold for a token to be considered a dynamic token or not
   #
   # Returns:
   # event_string [String], template_string[String], which are useful for log analysis and pattern recognition.
   # It also updates the gram dict based on this information.
-  def process_log_event(log_event)
+  def process_log_event(log_event, dynamic_token_threshold)
     # Split log event into tokens
     tokens = token_splitter(log_event)
 
@@ -123,7 +124,7 @@ class Preprocessor
     return if tokens.nil?
 
     # Parse the log based on the pre-existing gramdict data
-    parser = Parser.new(@gram_dict, 0.5)
+    parser = Parser.new(@gram_dict, dynamic_token_threshold)
     event_string, template_string = parser.parse(tokens)
 
     # Update gram_dict
