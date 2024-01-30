@@ -206,6 +206,7 @@ GEM
 
 PLATFORMS
   universal-java-11
+  universal-java-21
 
 DEPENDENCIES
   execjs

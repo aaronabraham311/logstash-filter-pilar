@@ -3,32 +3,22 @@
 # The GramDict class is designed for processing and analyzing log events.
 # It creates dictionaries for single, double, triple, and four-word combinations
 # (n-grams) found in the log data. The class is initialized with several parameters:
-# - separator: Character or string used to separate log entries.
-# - logformat: A string representing the format of the log entries.
-# - regex: Regular expression used for pre-processing log entries.
-# - ratio: A float representing the fraction of the log file to process.
 #
 # Methods:
-# - SingleGramUpload(gram): Updates the count of a single word in the dictionary.
-# - DoubleGramUpload(gram): Updates the count of a double word combination in the dictionary.
-# - TriGramUpload(gram): Updates the count of a triple word combination in the dictionary.
-# - FourGramUpload(gram): Updates the count of a four-word combination in the dictionary.
-# - UploadGram(tokens, index): Processes a token at a specific index for all n-gram dictionaries.
-# - GramBuilder(tokens): Processes an array of tokens for n-gram analysis.
-# - DictionarySetUp(): Initializes the dictionaries with data from the log file.
+# - single_gram_upload(gram): Updates the count of a single word in the dictionary.
+# - double_gram_upload(gram): Updates the count of a double word combination in the dictionary.
+# - tri_gram_upload(gram): Updates the count of a triple word combination in the dictionary.
+# - four_gram_upload(gram): Updates the count of a four-word combination in the dictionary.
+# - Getters for each gram_dict (asides from four_gram_dict)
 #
 # This class is useful for log file analysis, especially for identifying common patterns
 # and anomalies in log entries.
 class GramDict
-  def initialize(separator, logformat, ratio)
+  def initialize
     @four_gram_dict = {}
     @tri_gram_dict = {}
     @double_gram_dict = {}
     @single_gram_dict = {}
-
-    @separator = separator
-    @logformat = logformat
-    @ratio = ratio
   end
 
   # Method: single_gram_upload
@@ -131,4 +121,43 @@ class GramDict
   # Returns:
   # The @tri_gram_dict member
   attr_reader :tri_gram_dict
+
+  # Processes an array of tokens to upload single grams, digrams, and trigrams to the @gram_dict.
+  #
+  # This method iterates through each token in the array. For each token, it uploads the token as a single gram.
+  # Additionally, if the current token is not the first in the array, it creates and uploads a digram using the current
+  # and previous token.
+  # If the token is at least the third in the array, the method also creates and uploads a trigram using the current
+  # token and the two preceding it.
+  # The tokens in digrams and trigrams are separated by a defined separator (`token_seperator`).
+  #
+  # Parameters:
+  # tokens [Array<String>] an array of string tokens to be processed
+  #
+  # Returns:
+  # [void] this method does not return a value but updates single_gram_dict, double_gram_dict and tri_gram_dict
+  def upload_grams(tokens)
+    token_seperator = '^'
+
+    # Iterate across all tokens
+    tokens.each_with_index do |token, index|
+      # Upload single gram
+      single_gram_upload(token)
+
+      # If possible, upload a digram
+      if index.positive?
+        first_token = tokens[index - 1]
+        digram = first_token + token_seperator + token
+        double_gram_upload(digram)
+      end
+
+      # If possible, upload a trigram
+      next unless index > 1
+
+      first_token = tokens[index - 2]
+      second_token = tokens[index - 1]
+      trigram = first_token + token_seperator + second_token + token_seperator + token
+      tri_gram_upload(trigram)
+    end
+  end
 end

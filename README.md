@@ -107,6 +107,11 @@ bin/logstash-plugin install --no-verify
 ```sh
 bin/logstash -e 'filter {pilar {}}'
 ```
+Alternatively, you can include a file path for seed logs by running the following:
+```sh
+bin/logstash -e 'filter { pilar { seed_logs_path => "example/file/path" } }'
+```
+
 At this point any modifications to the plugin code will be applied to this local Logstash setup. After modifying the plugin, simply rerun Logstash.
 
 #### 2.2 Run in an installed Logstash
