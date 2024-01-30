@@ -15,7 +15,6 @@
 # and anomalies in log entries.
 class GramDict
   def initialize
-    @four_gram_dict = {}
     @tri_gram_dict = {}
     @double_gram_dict = {}
     @single_gram_dict = {}
@@ -72,23 +71,6 @@ class GramDict
       @tri_gram_dict[gram] += 1
     else
       @tri_gram_dict[gram] = 1
-    end
-  end
-
-  # Method: four_gram_upload
-  # This method manages the frequency count of four grams (sequences of four words or tokens) in a hash map.
-  # It either increments the existing count or initializes it to 1 if the four gram is new.
-  #
-  # Parameters:
-  # gram: A string that denotes the four gram to be updated in the hash map.
-  #
-  # Returns:
-  # Nothing. The @four_gram_dict is updated accordingly.
-  def four_gram_upload(gram)
-    if @four_gram_dict.key?(gram)
-      @four_gram_dict[gram] += 1
-    else
-      @four_gram_dict[gram] = 1
     end
   end
 

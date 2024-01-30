@@ -138,25 +138,31 @@ class Parser
 
   # Method: template_generator
   # Generates a standardized log template from a list of tokens. This method replaces dynamic tokens
-  # (identified by their indices in dynamic_indices) with a placeholder symbol '<*>'. The result is a template
-  # that represents the static structure of the log entry, with dynamic parts generalized.
+  # (identified by their indices in dynamic_indices) with a placeholder symbol '<*>' and stores the tokens
+  # for output. The result is a template that represents the static structure of the log entry,
+  # with dynamic parts parsed out.
   #
   # Parameters:
   # tokens: An array of tokens from the log entry.
   # dynamic_indices: An array of indices indicating which tokens are dynamic.
   #
   # Returns:
-  # A string representing the log template, with dynamic tokens replaced by '<*>'.
+  # template: A string representing the log template, with dynamic tokens replaced by '<*>'.
+  # dynamic_tokens: a map of dynamic tokens, structured as { "dynamic_token_{index}" : <dynamic_token> }
   def template_generator(tokens, dynamic_indices)
     template = String.new('')
+    dynamic_tokens = {}
+
     tokens.each_with_index do |token, index|
-      template << if dynamic_indices.include?(index)
-                    '<*> '
-                  else
-                    "#{token} "
-                  end
+      if dynamic_indices.include?(index)
+        template << '<*> '
+        dynamic_tokens["dynamic_token_#{index}"] = token
+      else
+        template << "#{token} "
+      end
     end
-    template
+
+    [template, dynamic_tokens]
   end
 
   # Method: parse
@@ -171,17 +177,13 @@ class Parser
   # An array containing the event_string and template_string, which are useful for log analysis and pattern recognition.
   def parse(log_tokens)
     dynamic_indices = find_dynamic_indices(log_tokens)
-    template_string = template_generator(log_tokens, dynamic_indices)
+    template_string, dynamic_tokens = template_generator(log_tokens, dynamic_indices)
 
     # TODO: The Python iteration of the parser does a few regex checks here on the templates
     # It's unclear based on prelimilarly data if we need this, but once the full plugin has been fleshed out we can
     # revisit
     template_string.gsub!(/[,'"]/, '')
 
-    id = Digest::MD5.hexdigest(template_string)[0...4]
-
-    event_string = "e#{id},#{template_string}\n"
-
-    [event_string, template_string]
+    [template_string, dynamic_tokens]
   end
 end
