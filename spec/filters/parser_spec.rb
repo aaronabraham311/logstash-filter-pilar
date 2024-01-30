@@ -76,24 +76,29 @@ describe Parser do
       tokens = tokens_list[1]
       dynamic_indices = [1]
 
-      template = parser.template_generator(tokens, dynamic_indices)
+      template, dynamic_tokens = parser.template_generator(tokens, dynamic_indices)
+
+      # template = template_generator_return_value[0]
+      # dynamic_tokens = template_generator_return_value[1]
+
       expected_template = 'token2a <*> token2c '
+      expected_dynamic_tokens = { 'dynamic_token_1' => 'token2b' }
 
       expect(template).to eq(expected_template)
+      expect(dynamic_tokens).to eq(expected_dynamic_tokens)
     end
   end
 
   describe '#parse' do
     it 'parses the tokens list and generates strings in the correct format' do
       tokens = tokens_list[1]
-      event_string, template_string = parser.parse(tokens)
-
-      expected_event_string = "e5a48,token2a token2b token2c \n"
+      template_string, dynamic_tokens = parser.parse(tokens)
 
       expected_template_string = 'token2a token2b token2c '
+      expected_dynamic_tokens = {}
 
-      expect(event_string).to eq(expected_event_string)
       expect(template_string).to eq(expected_template_string)
+      expect(dynamic_tokens).to eq(expected_dynamic_tokens)
     end
   end
 end

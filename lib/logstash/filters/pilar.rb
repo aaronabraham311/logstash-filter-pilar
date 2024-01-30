@@ -37,13 +37,13 @@ module LogStash
           processed_log = @preprocessor.process_log_event(event.get(@source_field))
 
           if processed_log
-            event_string, template_string = processed_log
+            template_string, dynamic_tokens = processed_log
 
             # Set the new values in the returned event
-            event.set('event_string', event_string)
             event.set('template_string', template_string)
+            event.set('dynamic_tokens', dynamic_tokens)
           else
-            event.set('event_string', nil)
+            event.set('dynamic_tokens', nil)
             event.set('template_string', nil)
           end
 
