@@ -19,13 +19,14 @@ module LogStash
         @gramdict = GramDict.new
         @preprocessor = Preprocessor.new(@gramdict, '<date> <time> <message>', 'message')
 
-        # populate gramdict with seed logs 
-        if @seed_logs_path 
-          ::File.open(@seed_logs_path, "r") do |seed_logs|
-            seed_logs.each_line do |seed_log|
-              # TODO: Here, we are parsing every seed log file when we don't need to, might need to separate these steps out
-              @preprocessor.process_log_event(seed_log)
-            end
+        # populate gramdict with seed logs
+        return unless @seed_logs_path
+
+        ::File.open(@seed_logs_path, 'r') do |seed_logs|
+          seed_logs.each_line do |seed_log|
+            # TODO: Here, we are parsing every seed log file when we don't need to,
+            # might need to separate these steps out
+            @preprocessor.process_log_event(seed_log)
           end
         end
       end
@@ -36,13 +37,13 @@ module LogStash
           processed_log = @preprocessor.process_log_event(event.get(@source_field))
 
           if processed_log
-            event_string, template_string = processed_log
+            template_string, dynamic_tokens = processed_log
 
             # Set the new values in the returned event
-            event.set('event_string', event_string)
             event.set('template_string', template_string)
+            event.set('dynamic_tokens', dynamic_tokens)
           else
-            event.set('event_string', nil)
+            event.set('dynamic_tokens', nil)
             event.set('template_string', nil)
           end
 

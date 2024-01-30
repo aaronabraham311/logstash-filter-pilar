@@ -124,11 +124,11 @@ class Preprocessor
 
     # Parse the log based on the pre-existing gramdict data
     parser = Parser.new(@gram_dict, 0.5)
-    event_string, template_string = parser.parse(tokens)
+    template_string, dynamic_tokens = parser.parse(tokens)
 
     # Update gram_dict
     @gram_dict.upload_grams(tokens)
 
-    [event_string, template_string]
+    [template_string, dynamic_tokens]
   end
 end
