@@ -111,20 +111,27 @@ class Preprocessor
   #
   # Parameters:
   # log_event [String] the log event to be processed
+  # parse? [String] a boolean that controls whether the log_event should be parsed. This will be set to False for
+  #                 seed log events.
   #
   # Returns:
   # event_string [String], template_string[String], which are useful for log analysis and pattern recognition.
   # It also updates the gram dict based on this information.
-  def process_log_event(log_event)
+  def process_log_event(log_event, parse)
+    template_string = nil
+    dynamic_tokens = nil
+
     # Split log event into tokens
     tokens = token_splitter(log_event)
 
     # If no tokens were returned, do not parse the logs and return
     return if tokens.nil?
 
-    # Parse the log based on the pre-existing gramdict data
-    parser = Parser.new(@gram_dict, 0.5)
-    template_string, dynamic_tokens = parser.parse(tokens)
+    if parse
+      # Parse the log based on the pre-existing gramdict data
+      parser = Parser.new(@gram_dict, 0.5)
+      template_string, dynamic_tokens = parser.parse(tokens)
+    end
 
     # Update gram_dict
     @gram_dict.upload_grams(tokens)

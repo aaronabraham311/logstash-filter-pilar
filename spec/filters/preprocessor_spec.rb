@@ -47,7 +47,7 @@ describe Preprocessor do
     end
 
     it 'calls token_splitter with the log event' do
-      preprocessor.process_log_event(log_event)
+      preprocessor.process_log_event(log_event, true)
       expect(preprocessor).to have_received(:token_splitter).with(log_event)
     end
 
@@ -57,7 +57,7 @@ describe Preprocessor do
       before do
         allow(preprocessor).to receive(:token_splitter).and_return(tokens)
         allow(gram_dict).to receive(:upload_grams)
-        preprocessor.process_log_event(log_event)
+        preprocessor.process_log_event(log_event, true)
       end
 
       it 'calls upload_grams with extracted tokens' do
@@ -69,11 +69,33 @@ describe Preprocessor do
       before do
         allow(preprocessor).to receive(:token_splitter).and_return(nil)
         allow(gram_dict).to receive(:upload_grams)
-        preprocessor.process_log_event(log_event)
+        preprocessor.process_log_event(log_event, true)
       end
 
       it 'does not call upload_grams' do
         expect(gram_dict).not_to have_received(:upload_grams)
+      end
+    end
+
+    context 'when parse is set to false' do
+      before do
+        allow(Parser).to receive(:new).and_return(double('Parser', parse: nil))
+        preprocessor.process_log_event(log_event, false)
+      end
+
+      it 'does not call parser.parse' do
+        expect(Parser).not_to have_received(:new)
+      end
+    end
+
+    context 'when parse is set to true' do
+      before do
+        allow(Parser).to receive(:new).and_return(double('Parser', parse: nil))
+        preprocessor.process_log_event(log_event, true)
+      end
+
+      it 'does call parser.parse' do
+        expect(Parser).to have_received(:new)
       end
     end
   end
