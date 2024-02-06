@@ -39,6 +39,12 @@ class Preprocessor
 
     # This is the content specifier in the @format regex
     @content_specifier = content_specifier
+
+    # This is to associate logs to EventIDs for Testing Purposes
+    @template_to_template_id = {}
+
+    # Current Log Counter
+    @template_to_template_id_counter = 0
   end
 
   # Method: regex_generator
@@ -105,17 +111,18 @@ class Preprocessor
   # digrams, and trigrams to the `@gram_dict`.
   #
   # The process involves two primary steps: tokenization and dictionary updating.
-  # Tokenization is done based on the log format and involves masking sensitive information before splitting.
+  # Tokenization is done based on the log format.
   # Each token, digram, and trigram found in the log event is then uploaded to the gram dictionary, enhancing the
   # dictionary's ability to process future log events.
   #
   # Parameters:
   # log_event [String] the log event to be processed
+  # threshold [Float] a numeric value used to determine if a token is dynamic based on its frequency.
   #
   # Returns:
   # event_string [String], template_string[String], which are useful for log analysis and pattern recognition.
   # It also updates the gram dict based on this information.
-  def process_log_event(log_event)
+  def process_log_event(log_event, threshold)
     # Split log event into tokens
     tokens = token_splitter(log_event)
 
@@ -123,12 +130,39 @@ class Preprocessor
     return if tokens.nil?
 
     # Parse the log based on the pre-existing gramdict data
-    parser = Parser.new(@gram_dict, 0.5)
+    parser = Parser.new(@gram_dict, threshold)
     event_string, template_string = parser.parse(tokens)
+
+    if !@template_to_template_id.key?(template_string)
+      @template_to_template_id[template_string] = @template_to_template_id_counter
+      @template_to_template_id_counter += 1
+    end
+
+    template_id = @template_to_template_id[template_string]
 
     # Update gram_dict
     @gram_dict.upload_grams(tokens)
 
-    [event_string, template_string]
+    [event_string, template_string, template_id]
+  end
+
+  # Processes a given seed file log event by tokenizing it and updating the gram dictionary.
+  #
+  # This method is the same as the process_log_event except it doesn't parse the tokens and does not output anything
+  #
+  # Parameters:
+  # log_event [String] the log event to be processed
+  #
+  # Returns:
+  # nil
+  def process_seed_log_event(log_event, threshold)
+    # Split log event into tokens
+    tokens = token_splitter(log_event)
+
+    # If no tokens were returned, do not parse the logs and return
+    return if tokens.nil?
+
+    # Update gram_dict
+    @gram_dict.upload_grams(tokens)
   end
 end
