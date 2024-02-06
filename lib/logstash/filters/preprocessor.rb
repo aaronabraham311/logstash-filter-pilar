@@ -140,7 +140,7 @@ class Preprocessor
       template_string, dynamic_tokens = parser.parse(tokens)
     end
 
-    if !@template_to_template_id.key?(template_string)
+    unless @template_to_template_id.key?(template_string)
       @template_to_template_id[template_string] = @template_to_template_id_counter
       @template_to_template_id_counter += 1
     end

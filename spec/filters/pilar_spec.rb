@@ -14,12 +14,12 @@ describe LogStash::Filters::Pilar do
   describe 'configuration validation' do
     context 'when threshold is valid' do
       let(:config) { { 'threshold' => 0.5 } }
-      
+
       it 'registers without errors' do
         expect { described_class.new(config).register }.not_to raise_error
       end
     end
-  end  
+  end
 
   describe 'registration' do
     it 'correctly register without errors' do
@@ -55,12 +55,11 @@ describe LogStash::Filters::Pilar do
     let(:sample_log) { 'Sample log content' }
     let(:event1) { LogStash::Event.new('message' => sample_log) }
     let(:event2) { LogStash::Event.new('message' => sample_log) }
-  
+
     it 'increments line_id for each event' do
       pilar_filter.filter(event1)
       pilar_filter.filter(event2)
       expect(event2.get('line_id')).to eq(event1.get('line_id') + 1)
     end
   end
-  
 end

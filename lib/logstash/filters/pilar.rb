@@ -23,7 +23,7 @@ module LogStash
         @gramdict = GramDict.new
         @preprocessor = Preprocessor.new(@gramdict, logformat, content_specifier)
 
-        if threshold > 1 || threshold < 0
+        if threshold > 1 || threshold.negative?
           raise LogStash::ConfigurationError, "Threshold value #{threshold} is invalid. It must be between 0 and 1."
         end
 
@@ -43,7 +43,7 @@ module LogStash
         # Use the message from the specified source field
         if event.get(@source_field)
           processed_log = @preprocessor.process_log_event(event.get(@source_field), threshold, true)
-          event.set('line_id',  @linenumber)
+          event.set('line_id', @linenumber)
           @linenumber += 1
 
           if processed_log

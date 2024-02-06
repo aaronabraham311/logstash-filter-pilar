@@ -79,12 +79,16 @@ describe Preprocessor do
     end
 
     it 'updates the template_to_template_id mapping for unique log templates' do
-      expect { preprocessor.process_log_event(log_event, threshold, true) }.to change { preprocessor.instance_variable_get(:@template_to_template_id).length }.by(1)
+      expect { preprocessor.process_log_event(log_event, threshold, true) }.to change {
+                                                                                 preprocessor.instance_variable_get(:@template_to_template_id).length
+                                                                               }.by(1)
     end
 
     it 'does not update the template_to_template_id mapping for repeated log templates' do
       preprocessor.process_log_event(log_event, threshold, true)
-      expect { preprocessor.process_log_event(log_event, threshold, true) }.not_to change { preprocessor.instance_variable_get(:@template_to_template_id).length }
+      expect { preprocessor.process_log_event(log_event, threshold, true) }.not_to(change do
+                                                                                     preprocessor.instance_variable_get(:@template_to_template_id).length
+                                                                                   end)
     end
 
     context 'when parse is set to false' do
