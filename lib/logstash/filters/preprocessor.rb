@@ -150,7 +150,7 @@ class Preprocessor
     # Update gram_dict
     @gram_dict.upload_grams(tokens)
 
-    [event_string, template_string, template_id]
+    [template_string, dynamic_tokens, template_id]
   end
 
   # Processes a given seed file log event by tokenizing it and updating the gram dictionary.

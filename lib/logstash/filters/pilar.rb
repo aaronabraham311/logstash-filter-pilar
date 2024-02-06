@@ -34,7 +34,7 @@ module LogStash
           seed_logs.each_line do |seed_log|
             # TODO: Here, we are parsing every seed log file when we don't need to,
             # might need to separate these steps out
-            @preprocessor.process_log_event(seed_log, false)
+            @preprocessor.process_log_event(seed_log, 0.0, false)
           end
         end
       end
@@ -42,16 +42,16 @@ module LogStash
       def filter(event)
         # Use the message from the specified source field
         if event.get(@source_field)
-          processed_log = @preprocessor.process_log_event(event.get(@source_field), threshold)
+          processed_log = @preprocessor.process_log_event(event.get(@source_field), threshold, true)
           event.set('line_id',  @linenumber)
           @linenumber += 1
 
           if processed_log
-            event_string, template_string, template_id = processed_log
+            template_string, dynamic_tokens, template_id = processed_log
 
             # Set the new values in the returned event
-            event.set('dynamic_tokens', dynamic_tokens)
             event.set('template_string', template_string)
+            event.set('dynamic_tokens', dynamic_tokens)
             event.set('template_id', template_id)
           else
             event.set('dynamic_tokens', nil)
