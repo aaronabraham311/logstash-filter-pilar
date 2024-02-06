@@ -152,24 +152,4 @@ class Preprocessor
 
     [template_string, dynamic_tokens, template_id]
   end
-
-  # Processes a given seed file log event by tokenizing it and updating the gram dictionary.
-  #
-  # This method is the same as the process_log_event except it doesn't parse the tokens and does not output anything
-  #
-  # Parameters:
-  # log_event [String] the log event to be processed
-  #
-  # Returns:
-  # nil
-  def process_seed_log_event(log_event, threshold)
-    # Split log event into tokens
-    tokens = token_splitter(log_event)
-
-    # If no tokens were returned, do not parse the logs and return
-    return if tokens.nil?
-
-    # Update gram_dict
-    @gram_dict.upload_grams(tokens)
-  end
 end
