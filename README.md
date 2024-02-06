@@ -114,6 +114,56 @@ bin/logstash -e 'filter { pilar { seed_logs_path => "example/file/path" } }'
 
 At this point any modifications to the plugin code will be applied to this local Logstash setup. After modifying the plugin, simply rerun Logstash.
 
+## 2.1.1 Group Match Testing
+Copy the following config into your logstash instance under 'logstash-simple.conf' and adjust the paths, logformat, thresholds and necessary.
+```
+input{
+    file{
+        mode => "read"
+        exit_after_read => true
+        sincedb_path => "/dev/null"
+        file_completed_action => "log"
+        file_completed_log_path => "/dev/null"
+        path => ["/Users/kevinzhang/Documents/src/logstash-8.11.1/SampleData/Apache/Apache_2k.log" ]
+    }
+}
+filter {
+    pilar { 
+        seed_logs_path => "/Users/kevinzhang/Documents/src/logstash-8.11.1/SampleData/Apache/Apache_2k_seed.log"
+        logformat => "\[<Time>\] \[<Level>\] <Content>"
+        threshold => 0.5
+    }
+}
+
+output {
+    csv {
+        fields => ["line_id", "@timestamp", "raw_log", "template_string", "template_id"]
+        path => "/Users/kevinzhang/Documents/src/logstash-8.11.1/Outputs/ApacheOutput.csv"
+    }
+}
+```
+
+[Copy this script](https://github.com/logpai/logparser/blob/main/logparser/utils/evaluator.py)  and add the following lines to the end of the script.
+
+```
+GROUNDTRUTH_CSV = "/Users/kevinzhang/Documents/src/logstash-8.11.1/SampleData/Apache/Apache_2k.log_structured.csv"
+OUTPUT_CSV = "/Users/kevinzhang/Documents/src/logstash-8.11.1/Outputs/ApacheOutput.csv"
+print(evaluate(GROUNDTRUTH_CSV, OUTPUT_CSV))
+```
+
+run the command
+
+```
+bin/logstash -f logstash-simple.conf -w 1 --log.level fatal
+```
+
+then run 
+
+```
+python3 evaluator.py
+```
+
+Data comes from [here](https://github.com/logpai/loghub)
 #### 2.2 Run in an installed Logstash
 
 You can use the same **2.1** method to run your plugin in an installed Logstash by editing its `Gemfile` and pointing the `:path` to your local plugin development directory or you can build the gem and install it using:
