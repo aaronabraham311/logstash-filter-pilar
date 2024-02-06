@@ -143,6 +143,14 @@ output {
 }
 ```
 
+REALLY ANNOYING THING (I would love to find a fix): Go to the path you defined for your output, manually create the csv and add the following lines (logstash can't do this automatically somehow)
+
+```
+LineId,@timestamp,raw_log,template_string,EventId
+
+```
+
+
 [Copy this script](https://github.com/logpai/logparser/blob/main/logparser/utils/evaluator.py)  and add the following lines to the end of the script.
 
 ```
