@@ -37,8 +37,8 @@ describe LogStash::Filters::Pilar do
       pilar_filter.filter(event)
     end
 
-    it 'correctlys sets the event_string field' do
-      expect(event.get('event_string')).not_to be_nil
+    it 'correctly sets the dynamic_tokens field' do
+      expect(event.get('dynamic_tokens')).not_to be_nil
     end
 
     it 'correctly sets the template_string field' do

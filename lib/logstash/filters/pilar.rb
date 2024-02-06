@@ -27,13 +27,14 @@ module LogStash
           raise LogStash::ConfigurationError, "Threshold value #{threshold} is invalid. It must be between 0 and 1."
         end
 
-        # populate gramdict with seed logs 
-        if @seed_logs_path 
-          ::File.open(@seed_logs_path, "r") do |seed_logs|
-            seed_logs.each_line do |seed_log|
-              # TODO: Here, we are parsing every seed log file when we don't need to, might need to separate these steps out
-              @preprocessor.process_log_event(seed_log, threshold)
-            end
+        # populate gramdict with seed logs
+        return unless @seed_logs_path
+
+        ::File.open(@seed_logs_path, 'r') do |seed_logs|
+          seed_logs.each_line do |seed_log|
+            # TODO: Here, we are parsing every seed log file when we don't need to,
+            # might need to separate these steps out
+            @preprocessor.process_log_event(seed_log, false)
           end
         end
       end
@@ -49,11 +50,11 @@ module LogStash
             event_string, template_string, template_id = processed_log
 
             # Set the new values in the returned event
-            event.set('event_string', event_string)
+            event.set('dynamic_tokens', dynamic_tokens)
             event.set('template_string', template_string)
             event.set('template_id', template_id)
           else
-            event.set('event_string', nil)
+            event.set('dynamic_tokens', nil)
             event.set('template_string', nil)
             event.set('template_id', nil)
           end

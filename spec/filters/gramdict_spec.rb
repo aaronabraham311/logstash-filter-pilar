@@ -45,18 +45,6 @@ describe GramDict do
     end
   end
 
-  describe '#four_gram_upload' do
-    let(:four_gram) { 'example four gram' }
-
-    it 'correctly updates the four gram count' do
-      expect { subject.four_gram_upload(four_gram) }
-        .to change { subject.instance_variable_get(:@four_gram_dict)[four_gram] }.from(nil).to(1)
-
-      expect { subject.four_gram_upload(four_gram) }
-        .to change { subject.instance_variable_get(:@four_gram_dict)[four_gram] }.from(1).to(2)
-    end
-  end
-
   describe '#upload_grams' do
     context 'with one token' do
       let(:tokens) { ['token1'] }

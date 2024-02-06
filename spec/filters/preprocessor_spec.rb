@@ -48,7 +48,7 @@ describe Preprocessor do
     end
 
     it 'calls token_splitter with the log event' do
-      preprocessor.process_log_event(log_event, threshold)
+      preprocessor.process_log_event(log_event, threshold, true)
       expect(preprocessor).to have_received(:token_splitter).with(log_event)
     end
 
@@ -58,7 +58,7 @@ describe Preprocessor do
       before do
         allow(preprocessor).to receive(:token_splitter).and_return(tokens)
         allow(gram_dict).to receive(:upload_grams)
-        preprocessor.process_log_event(log_event, threshold)
+        preprocessor.process_log_event(log_event, threshold, true)
       end
 
       it 'calls upload_grams with extracted tokens' do
@@ -70,7 +70,7 @@ describe Preprocessor do
       before do
         allow(preprocessor).to receive(:token_splitter).and_return(nil)
         allow(gram_dict).to receive(:upload_grams)
-        preprocessor.process_log_event(log_event, threshold)
+        preprocessor.process_log_event(log_event, threshold, true)
       end
 
       it 'does not call upload_grams' do
@@ -86,27 +86,26 @@ describe Preprocessor do
       preprocessor.process_log_event(log_event, threshold)
       expect { preprocessor.process_log_event(log_event, threshold) }.not_to change { preprocessor.instance_variable_get(:@template_to_template_id).length }
     end
-  end
+    context 'when parse is set to false' do
+      before do
+        allow(Parser).to receive(:new).and_return(double('Parser', parse: nil))
+        preprocessor.process_log_event(log_event, false)
+      end
 
-  describe '#process_seed_log_event' do
-    let(:log_event) { '2023-01-01 10:00:00 Sample Seed Log Event' }
-    let(:threshold) { 0.5 }
-
-    before do
-      allow(preprocessor).to receive(:token_splitter).and_call_original
-      allow(gram_dict).to receive(:upload_grams)
+      it 'does not call parser.parse' do
+        expect(Parser).not_to have_received(:new)
+      end
     end
 
-    it 'splits log event into tokens and updates gram dictionary without parsing' do
-      expect(preprocessor).to receive(:token_splitter).with(log_event).and_return(%w[Sample Seed Log Event])
-      expect(gram_dict).to receive(:upload_grams).with(%w[Sample Seed Log Event])
-      preprocessor.process_seed_log_event(log_event, threshold)
-    end
+    context 'when parse is set to true' do
+      before do
+        allow(Parser).to receive(:new).and_return(double('Parser', parse: nil))
+        preprocessor.process_log_event(log_event, true)
+      end
 
-    it 'does not update gram dictionary if no tokens are extracted' do
-      allow(preprocessor).to receive(:token_splitter).and_return(nil)
-      expect(gram_dict).not_to receive(:upload_grams)
-      preprocessor.process_seed_log_event(log_event, threshold)
+      it 'does call parser.parse' do
+        expect(Parser).to have_received(:new)
+      end
     end
   end
 end
