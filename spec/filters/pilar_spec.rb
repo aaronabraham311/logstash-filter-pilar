@@ -4,7 +4,7 @@ require_relative '../spec_helper'
 require 'logstash/filters/pilar'
 
 describe LogStash::Filters::Pilar do
-  let(:config) { { 'source_field' => 'sample_log' } }
+  let(:config) { { 'source_field' => 'sample_log', 'dynamic_token_threshold' => 0.5 } }
   subject(:pilar_filter) { described_class.new(config) }
 
   before do
@@ -27,8 +27,8 @@ describe LogStash::Filters::Pilar do
       pilar_filter.filter(event)
     end
 
-    it 'correctlys sets the event_string field' do
-      expect(event.get('event_string')).not_to be_nil
+    it 'correctly sets the dynamic_tokens field' do
+      expect(event.get('dynamic_tokens')).not_to be_nil
     end
 
     it 'correctly sets the template_string field' do
