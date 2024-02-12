@@ -4,7 +4,7 @@ require_relative '../spec_helper'
 require 'logstash/filters/pilar'
 
 describe LogStash::Filters::Pilar do
-  let(:config) { { 'source_field' => 'sample_log' } }
+  let(:config) { { 'source_field' => 'sample_log', 'dynamic_token_threshold' => 0.5 } }
   subject(:pilar_filter) { described_class.new(config) }
 
   before do

@@ -117,14 +117,14 @@ class Preprocessor
   #
   # Parameters:
   # log_event [String] the log event to be processed
-  # threshold [Float] a numeric value used to determine if a token is dynamic based on its frequency, only used if parse is true
-  # parse? [String] a boolean that controls whether the log_event should be parsed. This will be set to False for
+  # dynamic_token_threshold [Float] the threshold for a token to be considered a dynamic token or not
+  # parse [Boolean] a boolean that controls whether the log_event should be parsed. This will be set to False for
   #                 seed log events.
   #
   # Returns:
   # event_string [String], template_string[String], which are useful for log analysis and pattern recognition.
   # It also updates the gram dict based on this information.
-  def process_log_event(log_event, threshold, parse)
+  def process_log_event(log_event, dynamic_token_threshold, parse)
     template_string = nil
     dynamic_tokens = nil
 
@@ -134,9 +134,10 @@ class Preprocessor
     # If no tokens were returned, do not parse the logs and return
     return if tokens.nil?
 
+    # Parse the log based on the pre-existing gramdict data
     if parse
       # Parse the log based on the pre-existing gramdict data
-      parser = Parser.new(@gram_dict, threshold)
+      parser = Parser.new(@gram_dict, dynamic_token_threshold)
       template_string, dynamic_tokens = parser.parse(tokens)
     end
 
