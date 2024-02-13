@@ -114,61 +114,68 @@ bin/logstash -e 'filter { pilar { seed_logs_path => "example/file/path" } }'
 
 At this point any modifications to the plugin code will be applied to this local Logstash setup. After modifying the plugin, simply rerun Logstash.
 
-## 2.1.1 Group Match Testing
-Copy the following config into your logstash instance under 'logstash-simple.conf' and adjust the paths, logformat, thresholds and necessary.
+## 2.1.1 Parsing Accuracy Testing
+
+From your logstash directory, copy the following config into your logstash instance under 'logstash-simple.conf' and adjust the paths (demarcated with ${}), logformat, thresholds and necessary.
 ```
-input{
+input {
     file{
         mode => "read"
         exit_after_read => true
         sincedb_path => "/dev/null"
         file_completed_action => "log"
         file_completed_log_path => "/dev/null"
-        path => ["/Users/kevinzhang/Documents/src/logstash-8.11.1/SampleData/Apache/Apache_2k.log" ]
+        path => ["${ABSOLUTE PATH TO INPUT FILE}" ]
     }
 }
 filter {
+    ruby {
+        init => "
+            begin
+                @@csv_file    = '${RELATIVE PATH TO OUTPUT}'
+                @@csv_headers = ['line_id', '@timestamp', 'raw_log', 'template_string', 'EventId']
+                if File.zero?(@@csv_file) || !File.exist?(@@csv_file)
+                    CSV.open(@@csv_file, 'w') do |csv|
+                        csv << @@csv_headers
+                    end
+                end
+            end
+        "
+        code => "
+            begin
+                event.set('[@metadata][csv_file]', @@csv_file)
+                event.set('[@metadata][csv_headers]', @@csv_headers)
+            end
+        "
+    }
     pilar { 
-        seed_logs_path => "/Users/kevinzhang/Documents/src/logstash-8.11.1/SampleData/Apache/Apache_2k_seed.log"
-        logformat => "\[<Time>\] \[<Level>\] <Content>"
-        threshold => 0.5
+        seed_logs_path => "${ABSOLUTE PATH TO SEED FILE}"
+        logformat => "<Label> <Timestamp> <Date> <Node> <Time> <NodeRepeat> <Type> <Component> <Level> <Content>" // Update to match the passed in logs
+        dynamic_token_threshold => 0.5 // tweak
+        content_specifier => "Content" // Update to match logformat
+        regex_param => ["core\.\d+"] //
     }
 }
-
 output {
     csv {
         fields => ["line_id", "@timestamp", "raw_log", "template_string", "template_id"]
-        path => "/Users/kevinzhang/Documents/src/logstash-8.11.1/Outputs/ApacheOutput.csv"
+        path   => "%{[@metadata][csv_file]}"
     }
 }
 ```
 
-REALLY ANNOYING THING (I would love to find a fix): Go to the path you defined for your output, manually create the csv and add the following lines (logstash can't do this automatically somehow)
+[Copy this script](https://github.com/logpai/logparser/blob/main/logparser/utils/evaluator.py) and add the following lines to the end of the script with the appropriate substitutions
 
 ```
-LineId,@timestamp,raw_log,template_string,EventId
-
-```
-
-
-[Copy this script](https://github.com/logpai/logparser/blob/main/logparser/utils/evaluator.py)  and add the following lines to the end of the script.
-
-```
-GROUNDTRUTH_CSV = "/Users/kevinzhang/Documents/src/logstash-8.11.1/SampleData/Apache/Apache_2k.log_structured.csv"
-OUTPUT_CSV = "/Users/kevinzhang/Documents/src/logstash-8.11.1/Outputs/ApacheOutput.csv"
+GROUNDTRUTH_CSV = ${PATH TO REFERENCE}
+OUTPUT_CSV = ${PATH TO OUTPUT} # Same as the one listed in the Ruby filter plugin
 print(evaluate(GROUNDTRUTH_CSV, OUTPUT_CSV))
 ```
 
-run the command
+run the command (note: the -w 1 locks it to a single thread, if this has been verified to not affect performance/accuracy, we can remove it)
 
 ```
-bin/logstash -f logstash-simple.conf -w 1 --log.level fatal
-```
-
-then run 
-
-```
-python3 evaluator.py
+bin/logstash -f logstash-simple.conf -w 1 && python3 evaluator.py
 ```
 
 Data comes from [here](https://github.com/logpai/loghub)

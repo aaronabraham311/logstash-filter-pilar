@@ -10,7 +10,8 @@ describe Preprocessor do
   let(:logformat) { '<date> <time> <message>' }
   let(:content_specifier) { 'message' }
   let(:dynamic_token_threshold) { 0.5 }
-  let(:preprocessor) { Preprocessor.new(gram_dict, logformat, content_specifier) }
+  let(:regexes) {["(\d+\.){3}\d+"]}
+  let(:preprocessor) { Preprocessor.new(gram_dict, logformat, content_specifier, regexes) }
 
   describe '#regex_generator' do
     it 'generates a regex based on log format' do

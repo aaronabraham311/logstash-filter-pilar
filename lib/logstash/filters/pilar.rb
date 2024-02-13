@@ -18,9 +18,6 @@ module LogStash
       # which the parser will use to seed data structures. This seeding process will greatly improve accuracy
       # of subsequent log parsing
       config :seed_logs_path, validate: :path, required: false
-      config :logformat, validate: :string, default: '<Date> <Time> <Content>'
-      config :content_specifier, validate: :string, default: 'Content'
-      config :threshold, validate: :number, default: 0.5
 
       # The parsing algorithm requires a numeric probabilistic threshold to determine whether a
       # particular parsed token is a dynamic token (i.e. changes extremely frequently) or if it is static.
@@ -41,10 +38,14 @@ module LogStash
       # default will be 'message', matching the default format in the `logformat` variable
       config :content_specifier, validate: :string, required: false, default: 'message'
 
+      # The regex is UNKNOWN (TODO: Follow Up With Weiyi About Purpose)
+      config :regexes, validate: :array, required: true, default: ['(\d+\.){3}\d+']
+
       def register
         @linenumber = 1
+        @regexes = regexes.map { |regex| Regexp.new(regex) }
         @gramdict = GramDict.new
-        @preprocessor = Preprocessor.new(@gramdict, @logformat, @content_specifier)
+        @preprocessor = Preprocessor.new(@gramdict, @logformat, @content_specifier, @regexes)
 
         # Check if dynamic_token_threshold is between 0 and 1
         if @dynamic_token_threshold < 0.0 || @dynamic_token_threshold > 1.0
@@ -87,7 +88,8 @@ module LogStash
           end
 
           # include the raw log message
-          event.set('raw_log', event.get(@source_field))
+          raw_log = event.get(@source_field)
+          event.set('raw_log', raw_log.strip)
         end
 
         # Emit event

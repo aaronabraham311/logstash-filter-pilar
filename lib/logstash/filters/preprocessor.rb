@@ -26,11 +26,11 @@ require 'logstash/filters/parser'
 # - process_log_event(event): processes an entire log event by calling Parser.parse()
 #
 # Example:
-#   preprocessor = Preprocessor.new(gram_dict, regexes, logformat)
+#   preprocessor = Preprocessor.new(gram_dict, logformat, content_specifier, regexes)
 #
 # This class is essential for log management systems where data privacy and security are paramount.
 class Preprocessor
-  def initialize(gram_dict, logformat, content_specifier)
+  def initialize(gram_dict, logformat, content_specifier, regexes)
     # gram_dict for uploading log event tokens
     @gram_dict = gram_dict
 
@@ -45,6 +45,14 @@ class Preprocessor
 
     # Current Log Counter
     @template_to_template_id_counter = 0
+
+    @general_regex = [
+      /([\w-]+\.)+[\w-]+(:\d+)/,  # url
+      /\/?([0-9]+\.){3}[0-9]+(:[0-9]+)?(:|)/,  # IP
+      /(?<=\W)(\-?\+?\d+)(?=\W)|[0-9]+$/,  # Numbers
+    ]
+
+    @regexes = regexes
   end
 
   # Method: regex_generator
@@ -82,6 +90,18 @@ class Preprocessor
     Regexp.new("^#{format}$")
   end
 
+  def preprocess(log_line, regexes)
+    log_line = " " + log_line
+    regexes.each do |regex|
+      log_line = log_line.gsub(regex, "<*>")
+    end
+
+    @general_regex.each do |regex|
+      log_line = log_line.gsub(regex, "<*>")
+    end
+    return log_line
+  end
+
   # Splits a log line into tokens based on a given format and regular expression.
   #
   # Parameters:
@@ -99,7 +119,8 @@ class Preprocessor
     else
       # Gets content and return
       content = match[@content_specifier]
-      content.strip.split
+      line = preprocess(content, @regexes)
+      line.strip.split
     end
   end
 
