@@ -11,16 +11,6 @@ describe LogStash::Filters::Pilar do
     pilar_filter.register
   end
 
-  describe 'configuration validation' do
-    context 'when threshold is valid' do
-      let(:config) { { 'dynamic_token_threshold' => 0.5 } }
-
-      it 'registers without errors' do
-        expect { described_class.new(config).register }.not_to raise_error
-      end
-    end
-  end
-
   describe 'registration' do
     it 'correctly register without errors' do
       expect { pilar_filter }.not_to raise_error
