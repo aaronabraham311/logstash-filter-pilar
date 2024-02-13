@@ -49,17 +49,4 @@ describe LogStash::Filters::Pilar do
       expect(event.get('raw_log')).to eq(sample_log)
     end
   end
-
-  describe 'line number incrementation' do
-    let(:config) { {} } # Default configuration
-    let(:sample_log) { 'Sample log content' }
-    let(:event1) { LogStash::Event.new('message' => sample_log) }
-    let(:event2) { LogStash::Event.new('message' => sample_log) }
-
-    it 'increments line_id for each event' do
-      pilar_filter.filter(event1)
-      pilar_filter.filter(event2)
-      expect(event2.get('line_id')).to eq(event1.get('line_id') + 1)
-    end
-  end
 end

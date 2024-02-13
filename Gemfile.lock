@@ -5,13 +5,13 @@ PATH
       logstash-core-plugin-api (~> 2.0)
 
 PATH
-  remote: /Users/kevinzhang/Documents/src/logstash-8.11.1/logstash-core-plugin-api
+  remote: /Users/aaronabraham/code/aaronabraham311/logstash-8.11.0/logstash-core-plugin-api
   specs:
     logstash-core-plugin-api (2.1.16-java)
       logstash-core (= 8.11.0)
 
 PATH
-  remote: /Users/kevinzhang/Documents/src/logstash-8.11.1/logstash-core
+  remote: /Users/aaronabraham/code/aaronabraham311/logstash-8.11.0/logstash-core
   specs:
     logstash-core (8.11.0-java)
       cgi (~> 0.3.6)

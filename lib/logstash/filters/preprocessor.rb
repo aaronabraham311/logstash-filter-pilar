@@ -40,12 +40,6 @@ class Preprocessor
     # This is the content specifier in the @format regex
     @content_specifier = content_specifier
 
-    # This is to associate logs to EventIDs for Testing Purposes
-    @template_to_template_id = {}
-
-    # Current Log Counter
-    @template_to_template_id_counter = 0
-
     @general_regex = [
       /([\w-]+\.)+[\w-]+(:\d+)/, # url
       %r{/?([0-9]+\.){3}[0-9]+(:[0-9]+)?(:|)}, # IP
@@ -132,7 +126,7 @@ class Preprocessor
   # digrams, and trigrams to the `@gram_dict`.
   #
   # The process involves two primary steps: tokenization and dictionary updating.
-  # Tokenization is done based on the log format.
+  # Tokenization is done based on the log format and involves masking sensitive information before splitting.
   # Each token, digram, and trigram found in the log event is then uploaded to the gram dictionary, enhancing the
   # dictionary's ability to process future log events.
   #
@@ -162,16 +156,9 @@ class Preprocessor
       template_string, dynamic_tokens = parser.parse(tokens)
     end
 
-    unless @template_to_template_id.key?(template_string)
-      @template_to_template_id[template_string] = @template_to_template_id_counter
-      @template_to_template_id_counter += 1
-    end
-
-    template_id = @template_to_template_id[template_string]
-
     # Update gram_dict
     @gram_dict.upload_grams(tokens)
 
-    [template_string, dynamic_tokens, template_id]
+    [template_string, dynamic_tokens]
   end
 end

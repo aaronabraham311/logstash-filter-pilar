@@ -59,7 +59,7 @@ module LogStash
           seed_logs.each_line do |seed_log|
             # TODO: Here, we are parsing every seed log file when we don't need to,
             # might need to separate these steps out
-            @preprocessor.process_log_event(seed_log, 0.0, false)
+            @preprocessor.process_log_event(seed_log, false)
           end
         end
       end
@@ -71,20 +71,15 @@ module LogStash
             event.get(@source_field), @dynamic_token_threshold, true
           )
 
-          event.set('line_id', @linenumber)
-          @linenumber += 1
-
           if processed_log
-            template_string, dynamic_tokens, template_id = processed_log
+            template_string, dynamic_tokens = processed_log
 
             # Set the new values in the returned event
             event.set('template_string', template_string)
             event.set('dynamic_tokens', dynamic_tokens)
-            event.set('template_id', template_id)
           else
             event.set('dynamic_tokens', nil)
             event.set('template_string', nil)
-            event.set('template_id', nil)
           end
 
           # include the raw log message
