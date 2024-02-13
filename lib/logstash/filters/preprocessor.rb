@@ -47,9 +47,9 @@ class Preprocessor
     @template_to_template_id_counter = 0
 
     @general_regex = [
-      /([\w-]+\.)+[\w-]+(:\d+)/,  # url
-      /\/?([0-9]+\.){3}[0-9]+(:[0-9]+)?(:|)/,  # IP
-      /(?<=\W)(\-?\+?\d+)(?=\W)|[0-9]+$/,  # Numbers
+      /([\w-]+\.)+[\w-]+(:\d+)/, # url
+      %r{/?([0-9]+\.){3}[0-9]+(:[0-9]+)?(:|)}, # IP
+      /(?<=\W)(-?\+?\d+)(?=\W)|[0-9]+$/ # Numbers
     ]
 
     @regexes = regexes
@@ -91,15 +91,15 @@ class Preprocessor
   end
 
   def preprocess(log_line, regexes)
-    log_line = " " + log_line
+    log_line = " #{log_line}"
     regexes.each do |regex|
-      log_line = log_line.gsub(regex, "<*>")
+      log_line = log_line.gsub(regex, '<*>')
     end
 
     @general_regex.each do |regex|
-      log_line = log_line.gsub(regex, "<*>")
+      log_line = log_line.gsub(regex, '<*>')
     end
-    return log_line
+    log_line
   end
 
   # Splits a log line into tokens based on a given format and regular expression.

@@ -10,7 +10,7 @@ describe Preprocessor do
   let(:logformat) { '<date> <time> <message>' }
   let(:content_specifier) { 'message' }
   let(:dynamic_token_threshold) { 0.5 }
-  let(:regexes) {["(\d+\.){3}\d+"]}
+  let(:regexes) { ["(\d+.){3}\d+"] }
   let(:preprocessor) { Preprocessor.new(gram_dict, logformat, content_specifier, regexes) }
 
   describe '#regex_generator' do
@@ -82,14 +82,18 @@ describe Preprocessor do
 
     it 'updates the template_to_template_id mapping for unique log templates' do
       expect { preprocessor.process_log_event(log_event, threshold, true) }.to change {
-                                                                                 preprocessor.instance_variable_get(:@template_to_template_id).length
+                                                                                 preprocessor.instance_variable_get(
+                                                                                   :@template_to_template_id
+                                                                                 ).length
                                                                                }.by(1)
     end
 
     it 'does not update the template_to_template_id mapping for repeated log templates' do
       preprocessor.process_log_event(log_event, threshold, true)
       expect { preprocessor.process_log_event(log_event, threshold, true) }.not_to(change do
-                                                                                     preprocessor.instance_variable_get(:@template_to_template_id).length
+                                                                                     preprocessor.instance_variable_get(
+                                                                                       :@template_to_template_id
+                                                                                     ).length
                                                                                    end)
     end
 

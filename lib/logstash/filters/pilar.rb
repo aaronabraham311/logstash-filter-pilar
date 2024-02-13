@@ -70,7 +70,7 @@ module LogStash
           processed_log = @preprocessor.process_log_event(
             event.get(@source_field), @dynamic_token_threshold, true
           )
-          
+
           event.set('line_id', @linenumber)
           @linenumber += 1
 
