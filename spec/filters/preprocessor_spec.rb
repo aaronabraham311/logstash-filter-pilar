@@ -83,7 +83,7 @@ describe Preprocessor do
     context 'when parse is set to false' do
       before do
         allow(Parser).to receive(:new).and_return(double('Parser', parse: nil))
-        preprocessor.process_log_event(log_event, false)
+        preprocessor.process_log_event(log_event, dynamic_token_threshold, false)
       end
 
       it 'does not call parser.parse' do
@@ -94,7 +94,7 @@ describe Preprocessor do
     context 'when parse is set to true' do
       before do
         allow(Parser).to receive(:new).and_return(double('Parser', parse: nil))
-        preprocessor.process_log_event(log_event, true)
+        preprocessor.process_log_event(log_event, dynamic_token_threshold, true)
       end
 
       it 'does call parser.parse' do
