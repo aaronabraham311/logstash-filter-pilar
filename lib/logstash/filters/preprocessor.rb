@@ -84,7 +84,14 @@ class Preprocessor
     Regexp.new("^#{format}$")
   end
 
-  def preprocess(log_line, regexes)
+
+  # Processes a log line to replace known dynamic tokens using the passed in regexes and the general regexes
+  #
+  # Parameters:
+  # log_line [String] the log line to be processed
+  # Returns:
+  # [String] a string that is a copy of the log except that the known dynamic tokens have been replaced with '<*>'
+  def preprocess_known_dynamic_tokens(log_line, regexes)
     log_line = " #{log_line}"
     regexes.each do |regex|
       log_line = log_line.gsub(regex, '<*>')
@@ -113,7 +120,7 @@ class Preprocessor
     else
       # Gets content and return
       content = match[@content_specifier]
-      line = preprocess(content, @regexes)
+      line = preprocess_known_dynamic_tokens(content, @regexes)
       line.strip.split
     end
   end

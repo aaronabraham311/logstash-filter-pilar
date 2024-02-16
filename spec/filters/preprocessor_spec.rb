@@ -22,6 +22,35 @@ describe Preprocessor do
     end
   end
 
+  describe '#preprocess_known_dynamic_tokens' do
+  let(:log_line) { "User logged in from IP 192.168.1.1" }
+  let(:regexes) { [/User/] } # Example regex to match an IP address
+
+  it 'replaces known dynamic tokens with "<*>"' do
+    processed_log = preprocessor.preprocess_known_dynamic_tokens(log_line, regexes)
+    expect(processed_log).not_to include("User")
+    expect(processed_log).to include("<*>")
+  end
+
+  context 'with general regexes applied' do
+    it 'replaces both specific and general dynamic tokens with "<*>"' do
+      processed_log = preprocessor.preprocess_known_dynamic_tokens(log_line, regexes)
+      expect(processed_log).not_to include("192.168.1.1")
+      expect(processed_log).not_to include("User")
+      expect(processed_log).to include("<*>").twice
+    end
+  end
+
+  context 'when no matching tokens are found' do
+    let(:unmatched_log_line) { "Static log message without IP" }
+
+    it 'returns the log line unchanged' do
+      processed_log = preprocessor.preprocess_known_dynamic_tokens(unmatched_log_line, regexes)
+      expect(processed_log).to eq(" #{unmatched_log_line}")
+    end
+  end
+end
+
   describe '#token_splitter' do
     it 'splits a log line into tokens when a match is found' do
       log_line = '2023-01-01 10:00:00 Sample Log Message'
