@@ -38,8 +38,8 @@ module LogStash
       # default will be 'message', matching the default format in the `logformat` variable
       config :content_specifier, validate: :string, required: false, default: 'message'
 
-      # The regex is an array of strings that will be converted to regexes that the user can input in order to supply the 
-      # parser with prelimiary information about what is a a dynamic component of the log. For example, if the user wants 
+      # The regex is an array of strings that will be converted to regexes that the user can input in order to supply the
+      # parser with prelimiary information about what is a a dynamic component of the log. For example, if the user wants
       # to demark that IP addresses are known dynamic tokens, then the user can pass in passes in ['(\d+\.){3}\d+'] for IP
       # addresses to be extracted before parsing begins.
       config :regexes, validate: :array, required: false, default: []

@@ -84,7 +84,6 @@ class Preprocessor
     Regexp.new("^#{format}$")
   end
 
-
   # Processes a log line to replace known dynamic tokens using the passed in regexes and the general regexes
   #
   # Parameters:
