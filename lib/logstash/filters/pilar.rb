@@ -52,7 +52,7 @@ module LogStash
       def register
         @linenumber = 1
         @regexes = regexes.map { |regex| Regexp.new(regex) }
-        @gramdict = GramDict.new(@maximum_gram_dict_size)
+        @gramdict = GramDict.new(@maximum_gram_dict_size).clone
         @preprocessor = Preprocessor.new(@gramdict, @logformat, @content_specifier, @regexes)
 
         # Check if dynamic_token_threshold is between 0 and 1
@@ -75,6 +75,7 @@ module LogStash
       def filter(event)
         # Use the message from the specified source field
         if event.get(@source_field)
+          start_time = Time.now
           processed_log = @preprocessor.process_log_event(
             event.get(@source_field), @dynamic_token_threshold, true
           )
@@ -96,6 +97,9 @@ module LogStash
         end
 
         # Emit event
+        end_time = Time.now
+        duration  = end_time - start_time 
+        event.set('processing_duration', duration)
         filter_matched(event)
       end
     end
