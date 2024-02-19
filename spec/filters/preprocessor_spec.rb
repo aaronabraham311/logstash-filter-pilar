@@ -10,7 +10,8 @@ describe Preprocessor do
   let(:logformat) { '<date> <time> <message>' }
   let(:content_specifier) { 'message' }
   let(:dynamic_token_threshold) { 0.5 }
-  let(:preprocessor) { Preprocessor.new(gram_dict, logformat, content_specifier) }
+  let(:regexes) { ["(\d+.){3}\d+"] }
+  let(:preprocessor) { Preprocessor.new(gram_dict, logformat, content_specifier, regexes) }
 
   describe '#regex_generator' do
     it 'generates a regex based on log format' do
@@ -21,23 +22,63 @@ describe Preprocessor do
     end
   end
 
+  describe '#preprocess_known_dynamic_tokens' do
+    let(:log_line) { 'User logged in from IP 192.168.1.1' }
+    let(:regexes) { [/User/] }
+
+    it 'returns processed log line and dynamic tokens dictionary' do
+      processed_log, dynamic_tokens = preprocessor.preprocess_known_dynamic_tokens(log_line, regexes)
+      expect(processed_log).not_to include('User')
+      expect(processed_log).to include('<*>')
+      expect(dynamic_tokens).to be_a(Hash)
+      expect(dynamic_tokens.keys).to include('global_processed_dynamic_token_1')
+    end
+
+    context 'with general regexes applied' do
+      it 'replaces both specific and general dynamic tokens with "<*>"' do
+        processed_log = preprocessor.preprocess_known_dynamic_tokens(log_line, regexes)
+        expect(processed_log).not_to include('192.168.1.1')
+        expect(processed_log).not_to include('User')
+        expect(processed_log).to include('<*>').twice
+      end
+    end
+
+    context 'when extracting dynamic tokens' do
+      it 'correctly extracts and stores dynamic tokens with indices' do
+        _, dynamic_tokens = preprocessor.preprocess_known_dynamic_tokens(log_line, [/user/i])
+        expect(dynamic_tokens['manual_processed_dynamic_token_1']).to eq('User')
+      end
+    end
+
+    context 'when no matching tokens are found' do
+      let(:unmatched_log_line) { 'Static log message without dynamic content' }
+
+      it 'returns the log line unchanged and an empty dynamic tokens dictionary' do
+        processed_log, dynamic_tokens = preprocessor.preprocess_known_dynamic_tokens(unmatched_log_line, regexes)
+        expect(processed_log).to eq(" #{unmatched_log_line}")
+        expect(dynamic_tokens).to be_empty
+      end
+    end
+  end
+
   describe '#token_splitter' do
     it 'splits a log line into tokens when a match is found' do
       log_line = '2023-01-01 10:00:00 Sample Log Message'
       tokens = preprocessor.token_splitter(log_line)
       expect(tokens).to be_an(Array)
-      expect(tokens).to eq(%w[Sample Log Message])
+      expect(tokens).to eq([%w[Sample Log Message], {}])
     end
 
     it 'returns nil when no match is found in the log line' do
       log_line = ''
       tokens = preprocessor.token_splitter(log_line)
-      expect(tokens).to be_nil
+      expect(tokens).to eq([nil, nil])
     end
   end
 
   describe '#process_log_event' do
     let(:log_event) { '2023-01-01 10:00:00 Sample Log Event' }
+    let(:threshold) { 0.5 }
 
     before do
       allow(preprocessor).to receive(:token_splitter).and_call_original
@@ -56,7 +97,7 @@ describe Preprocessor do
       let(:tokens) { %w[Sample Log Event] }
 
       before do
-        allow(preprocessor).to receive(:token_splitter).and_return(tokens)
+        allow(preprocessor).to receive(:token_splitter).and_return([tokens, {}])
         allow(gram_dict).to receive(:upload_grams)
         preprocessor.process_log_event(log_event, dynamic_token_threshold, true)
       end
@@ -81,7 +122,7 @@ describe Preprocessor do
     context 'when parse is set to false' do
       before do
         allow(Parser).to receive(:new).and_return(double('Parser', parse: nil))
-        preprocessor.process_log_event(log_event, false)
+        preprocessor.process_log_event(log_event, dynamic_token_threshold, false)
       end
 
       it 'does not call parser.parse' do
@@ -92,7 +133,7 @@ describe Preprocessor do
     context 'when parse is set to true' do
       before do
         allow(Parser).to receive(:new).and_return(double('Parser', parse: nil))
-        preprocessor.process_log_event(log_event, true)
+        preprocessor.process_log_event(log_event, dynamic_token_threshold, true)
       end
 
       it 'does call parser.parse' do
