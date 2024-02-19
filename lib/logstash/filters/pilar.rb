@@ -45,49 +45,39 @@ module LogStash
       config :regexes, validate: :array, required: false, default: []
 
       # This determines the maximum size of the single, double, and triple gram dictionaries respectively.
-      # Upon any of those hash maps reaching their maximum size, a LRU evicition policy is used to remove items. 
+      # Upon any of those hash maps reaching their maximum size, a LRU evicition policy is used to remove items.
       # This controls the upper limit of the memory usage of this filter.
-      config :maximum_gram_dict_size, validate: :number, required: false, default: 10000
+      config :maximum_gram_dict_size, validate: :number, required: false, default: 10_000
 
       def register
-        # print "RUNNING ON WORKER ID " + @id 
-        worker_id = Thread.current.object_id.to_s
-        puts "REGISTER ON WORKER ID #{worker_id}\n"
         @linenumber = 1
         @regexes = regexes.map { |regex| Regexp.new(regex) }
-        # @gramdict = GramDict.new(@maximum_gram_dict_size).clone
-        # @preprocessor = Preprocessor.new(@gramdict, @logformat, @content_specifier, @regexes)
 
         # Check if dynamic_token_threshold is between 0 and 1
-        if @dynamic_token_threshold < 0.0 || @dynamic_token_threshold > 1.0
-          raise LogStash::ConfigurationError, 'dynamic_token_threshold must be between 0 and 1'
-        end
+        return unless @dynamic_token_threshold < 0.0 || @dynamic_token_threshold > 1.0
+
+        raise LogStash::ConfigurationError, 'dynamic_token_threshold must be between 0 and 1'
       end
 
       def filter(event)
+        # Initialize gramdict and preprocessor for this thread if not already done
+        unless Thread.current[:gramdict] && Thread.current[:preprocessor]
+          Thread.current[:gramdict] = GramDict.new(@maximum_gram_dict_size)
+          Thread.current[:preprocessor] =
+            Preprocessor.new(Thread.current[:gramdict], @logformat, @content_specifier, @regexes)
 
-          # Initialize gramdict and preprocessor for this thread if not already done
-          unless Thread.current[:gramdict] && Thread.current[:preprocessor]
-            Thread.current[:gramdict] = GramDict.new(@maximum_gram_dict_size)
-            Thread.current[:preprocessor] = Preprocessor.new(Thread.current[:gramdict], @logformat, @content_specifier, @regexes)
-
-            # Populate gramdict with seed logs
-            if @seed_logs_path && ::File.exist?(@seed_logs_path)
-              ::File.open(@seed_logs_path, 'r') do |seed_logs|
-                seed_logs.each_line do |seed_log|
-                  Thread.current[:preprocessor].process_log_event(seed_log, false)
-                end
+          # Populate gramdict with seed logs
+          if @seed_logs_path && ::File.exist?(@seed_logs_path)
+            ::File.open(@seed_logs_path, 'r') do |seed_logs|
+              seed_logs.each_line do |seed_log|
+                Thread.current[:preprocessor].process_log_event(seed_log, false)
               end
             end
           end
+        end
 
-          
         # Use the message from the specified source field
         if event.get(@source_field)
-          start_time = Time.now
-
-
-
           if event.get(@source_field)
 
             processed_log = Thread.current[:preprocessor].process_log_event(
@@ -112,9 +102,6 @@ module LogStash
         end
 
         # Emit event
-        end_time = Time.now
-        duration  = end_time - start_time 
-        event.set('processing_duration', duration)
         filter_matched(event)
       end
     end

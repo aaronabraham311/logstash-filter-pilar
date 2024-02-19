@@ -11,7 +11,7 @@ describe Parser do
 
   # Create an instance of GramDict
   let(:gramdict) do
-    gd = GramDict.new(10000)
+    gd = GramDict.new(10_000)
 
     # Manually setting the dictionaries
     gd.instance_variable_set(:@single_gram_dict, { 'token2a' => 2, 'key2' => 2 })

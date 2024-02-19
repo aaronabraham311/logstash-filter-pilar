@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'lru_redux'
 
 # The GramDict class is designed for processing and analyzing log events.
@@ -16,7 +17,6 @@ require 'lru_redux'
 # and anomalies in log entries.
 class GramDict
   def initialize(max_gram_dict_size)
-
     @max_gram_dict_size = max_gram_dict_size
     @tri_gram_dict = LruRedux::Cache.new(max_gram_dict_size)
     @double_gram_dict = LruRedux::Cache.new(max_gram_dict_size)
@@ -144,10 +144,5 @@ class GramDict
       trigram = first_token + token_seperator + second_token + token_seperator + token
       tri_gram_upload(trigram)
     end
-  end
-
-  def clone
-    new_gram_dict = GramDict.new(@max_gram_dict_size)
-    new_gram_dict
   end
 end

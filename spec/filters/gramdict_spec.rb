@@ -6,7 +6,7 @@ require 'logstash/filters/gramdict'
 
 describe GramDict do
   let(:logformat) { '<date> <time> <message>' }
-  let(:max_gram_dict_size) { 10000 }
+  let(:max_gram_dict_size) { 10_000 }
 
   subject { GramDict.new(max_gram_dict_size) }
 
