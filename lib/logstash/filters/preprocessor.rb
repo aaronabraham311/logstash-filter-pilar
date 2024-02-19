@@ -91,15 +91,25 @@ class Preprocessor
   # Returns:
   # [String] a string that is a copy of the log except that the known dynamic tokens have been replaced with '<*>'
   def preprocess_known_dynamic_tokens(log_line, regexes)
+    preprocessed_dynamic_token = {}
     log_line = " #{log_line}"
+
     regexes.each do |regex|
-      log_line = log_line.gsub(regex, '<*>')
+      log_line.gsub!(regex).each_with_index do |match, index|
+        key = "manual_processed_dynamic_token_#{index + 1}"
+        preprocessed_dynamic_token[key] = match
+        '<*>'
+      end
     end
 
     @general_regex.each do |regex|
-      log_line = log_line.gsub(regex, '<*>')
+      log_line.gsub!(regex).each_with_index do |match, index|
+        key = "global_processed_dynamic_token_#{index + 1}"
+        preprocessed_dynamic_token[key] = match
+        '<*>'
+      end
     end
-    log_line
+    [log_line, preprocessed_dynamic_token]
   end
 
   # Splits a log line into tokens based on a given format and regular expression.
@@ -115,12 +125,12 @@ class Preprocessor
 
     # If not match found, return nil
     if match.nil?
-      nil
+      [nil, nil]
     else
       # Gets content and return
       content = match[@content_specifier]
-      line = preprocess_known_dynamic_tokens(content, @regexes)
-      line.strip.split
+      line, preprocessed_dynamic_token = preprocess_known_dynamic_tokens(content, @regexes)
+      [line.strip.split, preprocessed_dynamic_token]
     end
   end
 
@@ -148,9 +158,13 @@ class Preprocessor
   def process_log_event(log_event, dynamic_token_threshold, parse)
     template_string = nil
     dynamic_tokens = nil
+    all_dynamic_tokens = {}
 
     # Split log event into tokens
-    tokens = token_splitter(log_event)
+    tokens, preprocessed_dynamic_token = token_splitter(log_event)
+    if preprocessed_dynamic_token
+      all_dynamic_tokens.merge(preprocessed_dynamic_token)
+    end
 
     # If no tokens were returned, do not parse the logs and return
     return if tokens.nil?
@@ -160,11 +174,18 @@ class Preprocessor
       # Parse the log based on the pre-existing gramdict data
       parser = Parser.new(@gram_dict, dynamic_token_threshold)
       template_string, dynamic_tokens = parser.parse(tokens)
+
+      # there should be no conflicts here as long as all preprocess_known_dynamic_tokens have
+      # the format "[global/manual]_preprocessed_dynamic_token_{i}" and all the dynamic tokens have the
+      # format "dynamic_token_{i}"
+      if dynamic_tokens
+        all_dynamic_tokens.merge(dynamic_tokens)
+      end
     end
 
     # Update gram_dict
     @gram_dict.upload_grams(tokens)
 
-    [template_string, dynamic_tokens]
+    [template_string, all_dynamic_tokens]
   end
 end

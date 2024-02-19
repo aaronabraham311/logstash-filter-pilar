@@ -24,12 +24,14 @@ describe Preprocessor do
 
   describe '#preprocess_known_dynamic_tokens' do
     let(:log_line) { 'User logged in from IP 192.168.1.1' }
-    let(:regexes) { [/User/] } # Example regex to match an IP address
+    let(:regexes) { [/User/] }
 
-    it 'replaces known dynamic tokens with "<*>"' do
-      processed_log = preprocessor.preprocess_known_dynamic_tokens(log_line, regexes)
+    it 'returns processed log line and dynamic tokens dictionary' do
+      processed_log, dynamic_tokens = preprocessor.preprocess_known_dynamic_tokens(log_line, regexes)
       expect(processed_log).not_to include('User')
       expect(processed_log).to include('<*>')
+      expect(dynamic_tokens).to be_a(Hash)
+      expect(dynamic_tokens.keys).to include('global_processed_dynamic_token_1')
     end
 
     context 'with general regexes applied' do
@@ -41,12 +43,20 @@ describe Preprocessor do
       end
     end
 
-    context 'when no matching tokens are found' do
-      let(:unmatched_log_line) { 'Static log message without IP' }
+    context 'when extracting dynamic tokens' do
+      it 'correctly extracts and stores dynamic tokens with indices' do
+        _, dynamic_tokens = preprocessor.preprocess_known_dynamic_tokens(log_line, [/user/i])
+        expect(dynamic_tokens['manual_processed_dynamic_token_1']).to eq('User')
+      end
+    end
 
-      it 'returns the log line unchanged' do
-        processed_log = preprocessor.preprocess_known_dynamic_tokens(unmatched_log_line, regexes)
+    context 'when no matching tokens are found' do
+      let(:unmatched_log_line) { 'Static log message without dynamic content' }
+
+      it 'returns the log line unchanged and an empty dynamic tokens dictionary' do
+        processed_log, dynamic_tokens = preprocessor.preprocess_known_dynamic_tokens(unmatched_log_line, regexes)
         expect(processed_log).to eq(" #{unmatched_log_line}")
+        expect(dynamic_tokens).to be_empty
       end
     end
   end
@@ -56,13 +66,13 @@ describe Preprocessor do
       log_line = '2023-01-01 10:00:00 Sample Log Message'
       tokens = preprocessor.token_splitter(log_line)
       expect(tokens).to be_an(Array)
-      expect(tokens).to eq(%w[Sample Log Message])
+      expect(tokens).to eq([%w[Sample Log Message], {}])
     end
 
     it 'returns nil when no match is found in the log line' do
       log_line = ''
       tokens = preprocessor.token_splitter(log_line)
-      expect(tokens).to be_nil
+      expect(tokens).to eq([nil, nil])
     end
   end
 
@@ -87,7 +97,7 @@ describe Preprocessor do
       let(:tokens) { %w[Sample Log Event] }
 
       before do
-        allow(preprocessor).to receive(:token_splitter).and_return(tokens)
+        allow(preprocessor).to receive(:token_splitter).and_return([tokens, {}])
         allow(gram_dict).to receive(:upload_grams)
         preprocessor.process_log_event(log_event, dynamic_token_threshold, true)
       end
