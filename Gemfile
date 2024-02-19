@@ -3,6 +3,8 @@
 source 'https://rubygems.org'
 gemspec
 
+gem 'lru_redux'
+
 logstash_path = ENV.fetch('LOGSTASH_PATH', nil)
 
 if Dir.exist?(logstash_path)

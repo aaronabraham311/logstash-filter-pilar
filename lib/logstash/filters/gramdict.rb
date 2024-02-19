@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'lru_redux'
 
 # The GramDict class is designed for processing and analyzing log events.
 # It creates dictionaries for single, double, triple, and four-word combinations
@@ -14,10 +15,10 @@
 # This class is useful for log file analysis, especially for identifying common patterns
 # and anomalies in log entries.
 class GramDict
-  def initialize
-    @tri_gram_dict = {}
-    @double_gram_dict = {}
-    @single_gram_dict = {}
+  def initialize(max_gram_dict_size)
+    @tri_gram_dict = LruRedux::Cache.new(max_gram_dict_size)
+    @double_gram_dict = LruRedux::Cache.new(max_gram_dict_size)
+    @single_gram_dict = LruRedux::Cache.new(max_gram_dict_size)
   end
 
   # Method: single_gram_upload

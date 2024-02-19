@@ -6,8 +6,9 @@ require 'logstash/filters/gramdict'
 
 describe GramDict do
   let(:logformat) { '<date> <time> <message>' }
+  let(:max_gram_dict_size) { 10000 }
 
-  subject { GramDict.new }
+  subject { GramDict.new(max_gram_dict_size) }
 
   describe '#single_gram_upload' do
     let(:gram) { 'example' }
@@ -52,8 +53,8 @@ describe GramDict do
       it 'updates only the single gram dictionary' do
         expect { subject.upload_grams(tokens) }
           .to change { subject.single_gram_dict['token1'] }.from(nil).to(1)
-        expect(subject.double_gram_dict).to be_empty
-        expect(subject.tri_gram_dict).to be_empty
+        expect(subject.double_gram_dict.count).to eq(0)
+        expect(subject.tri_gram_dict.count).to eq(0)
       end
     end
 
@@ -66,7 +67,7 @@ describe GramDict do
           .to change { subject.single_gram_dict['token1'] }.from(nil).to(1)
           .and change { subject.single_gram_dict['token2'] }.from(nil).to(1)
           .and change { subject.double_gram_dict[double_gram] }.from(nil).to(1)
-        expect(subject.tri_gram_dict).to be_empty
+        expect(subject.tri_gram_dict.count).to eq(0)
       end
     end
 

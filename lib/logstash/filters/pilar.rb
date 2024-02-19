@@ -44,10 +44,15 @@ module LogStash
       # ['(\d+\.){3}\d+'] for IP addresses to be extracted before parsing begins.
       config :regexes, validate: :array, required: false, default: []
 
+      # This determines the maximum size of the single, double, and triple gram dictionaries respectively.
+      # Upon any of those hash maps reaching their maximum size, a LRU evicition policy is used to remove items. 
+      # This controls the upper limit of the memory usage of this filter.
+      config :maximum_gram_dict_size, validate: :number, required: false, default: 10000
+
       def register
         @linenumber = 1
         @regexes = regexes.map { |regex| Regexp.new(regex) }
-        @gramdict = GramDict.new
+        @gramdict = GramDict.new(@maximum_gram_dict_size)
         @preprocessor = Preprocessor.new(@gramdict, @logformat, @content_specifier, @regexes)
 
         # Check if dynamic_token_threshold is between 0 and 1
