@@ -16,7 +16,6 @@ require 'lru_redux'
 # and anomalies in log entries.
 class GramDict
   def initialize(max_gram_dict_size)
-    print "YASH YASH YASH YASH YASH ITS NEW GRAM DICT TIME YASH YASH YASH "
 
     @max_gram_dict_size = max_gram_dict_size
     @tri_gram_dict = LruRedux::Cache.new(max_gram_dict_size)
