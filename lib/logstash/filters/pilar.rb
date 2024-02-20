@@ -38,9 +38,17 @@ module LogStash
       # default will be 'message', matching the default format in the `logformat` variable
       config :content_specifier, validate: :string, required: false, default: 'message'
 
+      # The regex is an array of strings that will be converted to regexes that the user can input in order to supply
+      # the parser with prelimiary information about what is a a dynamic component of the log. For example, if the
+      # user wants to demark that IP addresses are known dynamic tokens, then the user can pass in passes in
+      # ['(\d+\.){3}\d+'] for IP addresses to be extracted before parsing begins.
+      config :regexes, validate: :array, required: false, default: []
+
       def register
+        @linenumber = 1
+        @regexes = regexes.map { |regex| Regexp.new(regex) }
         @gramdict = GramDict.new
-        @preprocessor = Preprocessor.new(@gramdict, @logformat, @content_specifier)
+        @preprocessor = Preprocessor.new(@gramdict, @logformat, @content_specifier, @regexes)
 
         # Check if dynamic_token_threshold is between 0 and 1
         if @dynamic_token_threshold < 0.0 || @dynamic_token_threshold > 1.0
@@ -78,7 +86,8 @@ module LogStash
           end
 
           # include the raw log message
-          event.set('raw_log', event.get(@source_field))
+          raw_log = event.get(@source_field)
+          event.set('raw_log', raw_log.strip)
         end
 
         # Emit event
