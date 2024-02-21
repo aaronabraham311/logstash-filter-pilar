@@ -21,16 +21,16 @@ include::{include_path}/plugin_header.asciidoc[]
 
 ==== Description
 
-The PILAR plugin ports the https://dl.acm.org/doi/abs/10.1109/ICSE48619.2023.00077[PILAR parser] implementation for dynamic parsing of log events. The PILAR parser builds an n-gram dictionary of tokens in order to determine which tokens in a log event are considered dynamic and which are considered static. This enables the parser to dynamically extract out portions of the log without requring formal regular expressions.
+The PILAR plugin ports the https://dl.acm.org/doi/abs/10.1109/ICSE48619.2023.00077[PILAR parser] implementation for dynamic parsing of log events. This parser is capable of distinguishing which parts of a log event are dynamic (i.e. change all the time) and which parts are static; this enables the parser to extract out dynamic portions of a log event without requiring formal regular expressions. To accomplish this, the PILAR parser builds an n-gram dictionary of tokens in order to determine if a token is dynamic or static.
 
 This plugin format performs especially well against logs that have a consistent format (eg. syslogs, Apache, MySQL) but unlike regex-based parsers like Grok and Dissect, this plugin can determine what parts of a log can be extracted out based on past log data that the plugin has analyzed.
 
 This plugin's core algorithm has been modified from the original PILAR algorithm in order to be operational at high load. Specific changes made include:
 
   * Changing from a batch log processing algorithm to a stream-based log parsing solution
-  * Ensuring the n-gram dictionary can operate if Logstash runs on multiple workers
+  * Support for parallel parsing of logs across multiple workers
   * Testing at high scale to ensure that the parser adds minimal latency to the overall Logstash pipeline
-  * Least-recently-used eviction policy on the n-gram dictionary to maintain optimal heap size
+  * Least-recently-used eviction policy on the n-gram dictionary to maintain an upper bound on heap size
 
 ===== Should you use Grok or Dissect with PILAR?
 PILAR can be used in tandem with Grok or Dissect. For structural elements of a log event, like an IP address or a timestamp, Grok and Dissect work quite well, especially with the default shipped regular expression patterns. PILAR serves as an enhancement in the filtering pipeline but can also be used completely alone.
