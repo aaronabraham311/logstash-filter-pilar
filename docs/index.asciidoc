@@ -15,70 +15,99 @@ END - GENERATED VARIABLES, DO NOT EDIT!
 
 [id="plugins-{type}s-{plugin}"]
 
-=== Example filter plugin
+=== PILAR Filter Plugin
 
 include::{include_path}/plugin_header.asciidoc[]
 
 ==== Description
 
-Add plugin description here
+The PILAR plugin ports the https://dl.acm.org/doi/abs/10.1109/ICSE48619.2023.00077[PILAR parser] implementation for dynamic parsing of log events. This parser is capable of distinguishing which parts of a log event are dynamic (i.e. change all the time) and which parts are static; this enables the parser to extract out dynamic portions of a log event without requiring formal regular expressions. To accomplish this, the PILAR parser builds an n-gram dictionary of tokens in order to determine if a token is dynamic or static.
+
+This plugin format performs especially well against logs that have a consistent format (eg. syslogs, Apache, MySQL) but unlike regex-based parsers like Grok and Dissect, this plugin can determine what parts of a log can be extracted out based on past log data that the plugin has analyzed.
+
+This plugin's core algorithm has been modified from the original PILAR algorithm in order to be operational at high load. Specific changes made include:
+
+  * Changing from a batch log processing algorithm to a stream-based log parsing solution
+  * Support for parallel parsing of logs across multiple workers
+  * Testing at high scale to ensure that the parser adds minimal latency to the overall Logstash pipeline
+  * Least-recently-used eviction policy on the n-gram dictionary to maintain an upper bound on heap size
+
+===== Should you use Grok or Dissect with PILAR?
+PILAR can be used in tandem with Grok or Dissect. For structural elements of a log event, like an IP address or a timestamp, Grok and Dissect work quite well, especially with the default shipped regular expression patterns. PILAR serves as an enhancement in the filtering pipeline but can also be used completely alone.
+
 
 // Format anchors and links to support generated ids for versioning
 // Sample anchor: [id="plugins-{type}s-{plugin}-setting_name"]
 // Sample link: <<plugins-{type}s-{plugin}-setting_name>>
 
+==== Output
+[source,ruby]
+    {
+      "raw_log": "January 10, 2024 10:02:300 This is a parsed log emitted by user ID 129303
+      "template_string": "<*> This is a parsed log emitted by user ID <*>"
+      "dynamic_tokens": {
+        "dynamic_token_1": "January 10, 2024 10:02:300",
+        "dynamic_token_2": "129303
+      }
+    }
+
 [id="plugins-{type}s-{plugin}-options"]
-==== Example Filter Configuration Options
+==== PILAR Plugin Configuration Options
 
 [cols="<,<,<",options="header",]
 |=======================================================================
 |Setting |Input type|Required
-| <<plugins-{type}s-{plugin}-a_setting_name>> |<<boolean,boolean>>|No
-| <<plugins-{type}s-{plugin}-another_setting_name>> |<<hash,hash>>|No
-| <<plugins-{type}s-{plugin}-setting_name_3>> |<<string,string>>|No
-| <<plugins-{type}s-{plugin}-setting_name_4>> |<<number,number>>|No
-| <<plugins-{type}s-{plugin}-setting_name_5>> |<<array,array>>|No
+| <<plugins-{type}s-{plugin}-source_field,source_field>> |<<string,string>>|No
+| <<plugins-{type}s-{plugin}-logformat,logformat>> |<<string,string>>|No
+| <<plugins-{type}s-{plugin}-content_specifier,content_specifier>> |<<string,string>>|No
+| <<plugins-{type}s-{plugin}-dynamic_token_threshold,dynamic_token_threshold>> |<<number,number>>|No
+| <<plugins-{type}s-{plugin}-seed_logs_path,seed_logs_path>> |<<path,path>>|No
 |=======================================================================
 
-[id="plugins-{type}s-{plugin}-a_setting_name"]
-===== `a_setting_name` 
-
-  * Value type is <<boolean,boolean>>
-  * Default value is `true`
-
-Add description here
-
-[id="plugins-{type}s-{plugin}-another_setting_name"]
-===== `another_setting_name` 
-
-  * Value type is <<hash,hash>>
-  * Default value is `{}`
-
-Add description here
-
-[id="plugins-{type}s-{plugin}-setting_name_3"]
-===== `setting_name_3` 
+[id="plugins-{type}s-{plugin}-source_field"]
+===== `source_field`
 
   * Value type is <<string,string>>
-  * Default value is `{}`
+  * Default value is `message`
 
-Add description here
+Specify the field name in the events streamed into the plugin that contains the message to be parsed. If this is not set, the filter will use the value of the `"message"` field by default.
 
-[id="plugins-{type}s-{plugin}-setting_name_4"]
-===== `setting_name_4` 
+[id="plugins-{type}s-{plugin}-logformat"]
+===== `logformat`
+
+  * Value type is <<string,string>>
+  * Default value is `"<date> <time> <message>"`
+
+The standard log format for the application must be included in this plugin's configuration in the format of `"<log_part_1_placeholder> <log_part_2_placeholder> ..."`. For example, if logs are usually of the form "02012024 1706542368 Random log", then the log format would be `"<date> <time> <message>"`.
+
+If no log format is included, we will use the default of "<date> <time> <message>"
+
+[id="plugins-{type}s-{plugin}-content_specifier"]
+===== `content_specifier`
+
+  * Value type is <<string,string>>
+  * Default value is `"message"`
+
+The content_specifier variable is the placeholder value in the `logformat` variable which the parser should use to identify the actual log message. For example, if `logformat = '<date> <time> <message>'`, then the content_specifier should be 'message' since this is the part of the log that the parser should parse. The default will be 'message', matching the default format in the `logformat` variable
+
+[id="plugins-{type}s-{plugin}-dynamic_token_threshold"]
+===== `dynamic_token_threshold`
 
   * Value type is <<number,number>>
-  * Default value is `0`
+  * Default value is `0.5`
 
-Add description here
+The parsing algorithm requires a numeric probabilistic threshold to determine whether a particular parsed token is a dynamic token (i.e. changes extremely frequently) or if it is static.
 
-[id="plugins-{type}s-{plugin}-setting_name_5"]
-===== `setting_name_5` 
+If the probability that the token is a dynamic token is above this threshold, the token is considered dynamic. The default threshold is set at 0.5. Since this is a probability threshold, the config value must be between 0 and 1.
 
-  * Value type is <<array,array>>
-  * Default value is {}
+We recommend users to test this plugin with different thresholds and determine which threshold works best in parsing the most relevant data from the log events.
 
-Add description here
+[id="plugins-{type}s-{plugin}-seed_logs_path"]
+===== `seed_logs_path`
+
+  * Value type is <<path,path>>
+
+To improve accuracy of the parsing plugin, users will have the option of sending pre-existing logs which the parser will use to seed data structures. This seeding process will greatly improve accuracy of subsequent log parsing.
 
 // The full list of Value Types is here: 
 // https://www.elastic.co/guide/en/logstash/current/configuration-file-structure.html
