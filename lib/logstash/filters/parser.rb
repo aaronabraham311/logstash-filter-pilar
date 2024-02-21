@@ -84,7 +84,7 @@ class Parser
     singlegram = tokens[index - 1]
     doublegram = "#{singlegram}^#{tokens[index]}"
 
-    if @gramdict.double_gram_dict.include?(doublegram) && @gramdict.single_gram_dict.include?(singlegram)
+    if @gramdict.double_gram_dict.key?(doublegram) && @gramdict.single_gram_dict.key?(singlegram)
       @gramdict.double_gram_dict[doublegram].to_f / @gramdict.single_gram_dict[singlegram]
     else
       0
@@ -107,7 +107,7 @@ class Parser
     doublegram = "#{tokens[index - 2]}^#{tokens[index - 1]}"
     trigram = "#{doublegram}^#{tokens[index]}"
 
-    if @gramdict.tri_gram_dict.include?(trigram) && @gramdict.double_gram_dict.include?(doublegram)
+    if @gramdict.tri_gram_dict.key?(trigram) && @gramdict.double_gram_dict.key?(doublegram)
       @gramdict.tri_gram_dict[trigram].to_f / @gramdict.double_gram_dict[doublegram]
     else
       0
