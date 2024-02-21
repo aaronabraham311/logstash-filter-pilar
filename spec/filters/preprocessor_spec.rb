@@ -36,7 +36,7 @@ describe Preprocessor do
 
     context 'with general regexes applied' do
       it 'replaces both specific and general dynamic tokens with "<*>"' do
-        processed_log, preprocessed_dynamic_token = preprocessor.preprocess_known_dynamic_tokens(log_line, regexes)
+        processed_log, = preprocessor.preprocess_known_dynamic_tokens(log_line, regexes)
         expect(processed_log).not_to include('192.168.1.1')
         expect(processed_log).not_to include('User')
         expect(processed_log).to include('<*>').twice
