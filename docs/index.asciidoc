@@ -62,6 +62,7 @@ PILAR can be used in tandem with Grok or Dissect. For structural elements of a l
 | <<plugins-{type}s-{plugin}-content_specifier,content_specifier>> |<<string,string>>|No
 | <<plugins-{type}s-{plugin}-dynamic_token_threshold,dynamic_token_threshold>> |<<number,number>>|No
 | <<plugins-{type}s-{plugin}-seed_logs_path,seed_logs_path>> |<<path,path>>|No
+| <<plugins-{type}s-{plugin}-maximum_gram_dict_size,maximum_gram_dict_size>> |<<number,number>>|No
 |=======================================================================
 
 [id="plugins-{type}s-{plugin}-source_field"]
@@ -108,6 +109,14 @@ We recommend users to test this plugin with different thresholds and determine w
   * Value type is <<path,path>>
 
 To improve accuracy of the parsing plugin, users will have the option of sending pre-existing logs which the parser will use to seed data structures. This seeding process will greatly improve accuracy of subsequent log parsing.
+
+[id="plugins-{type}s-{plugin}-maximum_gram_dict_size"]
+===== `maximum_gram_dict_size`
+
+  * Value type is <<number,number>>
+  * Default value is `10000`
+
+To ensure that the memory usage of the plugin is not unbounded, a maximum size can be setup for the n-gram dictionaries used to parse logs. This value determines the maximum size for the single-gram, double-gram, and tri-gram hash-maps respectively.
 
 // The full list of Value Types is here: 
 // https://www.elastic.co/guide/en/logstash/current/configuration-file-structure.html
