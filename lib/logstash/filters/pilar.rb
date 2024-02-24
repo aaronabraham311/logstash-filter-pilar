@@ -42,7 +42,7 @@ module LogStash
       # the parser with prelimiary information about what is a a dynamic component of the log. For example, if the
       # user wants to demark that IP addresses are known dynamic tokens, then the user can pass in passes in
       # ['(\d+\.){3}\d+'] for IP addresses to be extracted before parsing begins.
-      config :regexes, validate: :array, required: false, default: []
+      config :regexes, validate: :string, list: true, required: false, default: []
 
       # This determines the maximum size of the single, double, and triple gram dictionaries respectively.
       # Upon any of those hash maps reaching their maximum size, a LRU evicition policy is used to remove items.
@@ -70,7 +70,7 @@ module LogStash
           if @seed_logs_path && ::File.exist?(@seed_logs_path)
             ::File.open(@seed_logs_path, 'r') do |seed_logs|
               seed_logs.each_line do |seed_log|
-                Thread.current[:preprocessor].process_log_event(seed_log, false)
+                Thread.current[:preprocessor].process_log_event(seed_log, @dynamic_token_threshold, false)
               end
             end
           end
@@ -78,22 +78,20 @@ module LogStash
 
         # Use the message from the specified source field
         if event.get(@source_field)
-          if event.get(@source_field)
 
-            processed_log = Thread.current[:preprocessor].process_log_event(
-              event.get(@source_field), @dynamic_token_threshold, true
-            )
+          processed_log = Thread.current[:preprocessor].process_log_event(
+            event.get(@source_field), @dynamic_token_threshold, true
+          )
 
-            if processed_log
-              template_string, dynamic_tokens = processed_log
+          if processed_log
+            template_string, dynamic_tokens = processed_log
 
-              # Set the new values in the returned event
-              event.set('template_string', template_string)
-              event.set('dynamic_tokens', dynamic_tokens)
-            else
-              event.set('dynamic_tokens', nil)
-              event.set('template_string', nil)
-            end
+            # Set the new values in the returned event
+            event.set('template_string', template_string)
+            event.set('dynamic_tokens', dynamic_tokens)
+          else
+            event.set('dynamic_tokens', nil)
+            event.set('template_string', nil)
           end
 
           # include the raw log message
