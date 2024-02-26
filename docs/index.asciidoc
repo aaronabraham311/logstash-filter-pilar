@@ -109,7 +109,7 @@ It is recommended to test different threshold values to determine which threshol
 
   * Value type is <<path,path>>
 
-To improve accuracy of the parsing plugin, users will have the option of sending pre-existing logs which the parser will use to seed data structures. This seeding process will greatly improve accuracy of subsequent log parsing.
+To improve accuracy of the parsing plugin, there is the option of sending pre-existing logs which the parser will use to seed data structures. This seeding process will greatly improve accuracy of subsequent log parsing.
 
 [id="plugins-{type}s-{plugin}-maximum_gram_dict_size"]
 ===== `maximum_gram_dict_size`
@@ -125,7 +125,8 @@ To ensure that the memory usage of the plugin is not unbounded, a maximum size c
   * Value type is <<string,string>>
   * Default value is `[]`
 
-The regexes variable allows regexes to be instered into the parsing pipeline to capture known dynamic tokens before the log is passed through the pipeline. Increasing the number of known dynamic tokens extracted in preprocessing will make the parsed results more accurate.
+The regexes variable allows regexes to be inserted into the parsing pipeline to capture known dynamic tokens before the log is passed through the pipeline. Increasing the number of known dynamic tokens extracted in preprocessing will make the parsed results more accurate.
+e.g., "(\d+.){3}\d+" can be used to pre-parse some IP addresses if it is known that they will be dynamic.
 
 // The full list of Value Types is here: 
 // https://www.elastic.co/guide/en/logstash/current/configuration-file-structure.html
