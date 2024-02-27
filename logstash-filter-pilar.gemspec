@@ -2,12 +2,12 @@
 
 Gem::Specification.new do |s|
   s.name          = 'logstash-filter-pilar'
-  s.version       = '0.1.0'
+  s.version       = '0.1.1'
   s.licenses      = ['Apache-2.0']
   s.summary       = 'Logstash Filter Plugin for Pilar'
   s.description   = 'A plugin for parsing log events using PILAR'
   s.homepage      = ''
-  s.authors       = %w[aaronabraham311 ZhangCreations]
+  s.authors       = %w[aaronabraham311 ZhangCreations yash-dani]
   s.email         = 'aaronabraham311@gmail.com'
   s.require_paths = ['lib']
   s.required_ruby_version = '>= 2.7.0'
